@@ -12,8 +12,8 @@ def load_and_preprocess_data(casi_csv, contro_csv, path):
     contro_df = pd.read_csv(contro_csv)
 
     # Replace path
-    casi_df['path'] = casi_df['path'].map(lambda x: x.replace("audios/casi", path))
-    contro_df['path'] = contro_df['path'].map(lambda x: x.replace("audios/controlli", path))
+    casi_df['path'] = casi_df['path'].map(lambda x: x.replace("audios", path))
+    contro_df['path'] = contro_df['path'].map(lambda x: x.replace("audios", path))
 
     # Remove special symbols in the path
     casi_df['path'] = casi_df['path'].apply(remove_special_characters)
