@@ -43,7 +43,7 @@ def load_and_preprocess_data(casi_csv, contro_csv, path):
 def remove_special_characters(text):
     return re.sub(r'[^A-Za-z0-9_( )./-]', '', text)
 
-def preprocess_and_load_dataset(healthy_csv, diseased_csv, path):
+def preprocess_and_load_dataset(healthy_csv, diseased_csv, path, modality='both'):
     cs_df, sv_df = load_and_preprocess_data(healthy_csv, diseased_csv, path)
     
     if modality == 'cs':

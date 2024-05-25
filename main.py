@@ -14,7 +14,7 @@ def main(args):
     np.random.seed(args.seed)
 
     # Load and preprocess data
-    dataset = preprocess_and_load_dataset(os.path.join(args.data_path, 'CASI.csv'), os.path.join(args.data_path, 'CONTROLLI.csv'), args.modality, args.data_path)
+    dataset = preprocess_and_load_dataset(os.path.join(args.data_path, 'CASI.csv'), os.path.join(args.data_path, 'CONTROLLI.csv'), args.data_path, args.modality)
 
     # Load feature extractor
     processor = load_feature_extractor(args.model_name)
