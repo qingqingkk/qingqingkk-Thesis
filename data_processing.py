@@ -16,8 +16,8 @@ def load_and_preprocess_data(casi_csv, contro_csv, path):
     contro_df['path'] = contro_df['path'].map(lambda x: x.replace("audios", path))
 
     # Remove special symbols in the path
-    casi_df['path'] = casi_df['path'].apply(remove_special_characters)
-    contro_df['path'] = contro_df['path'].apply(remove_special_characters)
+    # casi_df['path'] = casi_df['path'].apply(remove_special_characters)
+    # contro_df['path'] = contro_df['path'].apply(remove_special_characters)
 
     # filter DataFrame
     casi_cs = casi_df[casi_df['path'].str.contains('cs')]
