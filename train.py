@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score, f1_score
-from transformers import AutoModelForAudioClassification, TrainingArguments, Trainer
+from transformers import AutoModelForAudioClassification, TrainingArguments, Trainer, Wav2Vec2_Processor
 
 def compute_metrics(pred):
     labels = pred.label_ids
@@ -28,6 +28,7 @@ def train_and_evaluate(train_val_dataset, model_name, training_args, modality=No
             args=training_args,
             train_dataset=train_dataset,
             eval_dataset=val_dataset,
+            tokenizer=Wav2Vec2_Processor,
             compute_metrics=compute_metrics,
         )
 
