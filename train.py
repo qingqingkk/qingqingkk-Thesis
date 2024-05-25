@@ -1,7 +1,9 @@
 import numpy as np
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score, f1_score
-from transformers import AutoModelForAudioClassification, TrainingArguments, Trainer, Wav2Vec2_Processor
+from transformers import AutoModelForAudioClassification, TrainingArguments, Trainer
+from feature_extraction import load_feature_extractor
+
 
 def compute_metrics(pred):
     labels = pred.label_ids
@@ -17,6 +19,7 @@ def train_and_evaluate(train_val_dataset, model_name, training_args, modality=No
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
     accuracy_scores = []
     f1_scores = []
+    Processor = load_feature_extractor(model_name)
 
     for train_index, val_index in kf.split(train_val_dataset):
         train_dataset = train_val_dataset.select(train_index)
@@ -28,7 +31,7 @@ def train_and_evaluate(train_val_dataset, model_name, training_args, modality=No
             args=training_args,
             train_dataset=train_dataset,
             eval_dataset=val_dataset,
-            tokenizer=Wav2Vec2_Processor,
+            tokenizer=Processor,
             compute_metrics=compute_metrics,
         )
 
