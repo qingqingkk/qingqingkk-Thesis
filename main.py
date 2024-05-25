@@ -1,6 +1,7 @@
 import argparse
 import random
 import numpy as np
+import os
 
 from data_processing import preprocess_and_load_dataset
 from feature_extraction import load_feature_extractor, extract_features
@@ -13,7 +14,7 @@ def main(args):
     np.random.seed(args.seed)
 
     # Load and preprocess data
-    dataset = preprocess_and_load_dataset(args.casi_csv, args.contro_csv, args.modality)
+    dataset = preprocess_and_load_dataset(os.path.join(args.data_path, 'CASI.csv'), os.path.join(args.data_path, 'CONTROLLI.csv'), args.modality, args.data_path)
 
     # Load feature extractor
     processor = load_feature_extractor(args.model_name)
@@ -42,8 +43,9 @@ if __name__ == "__main__":
 
     # Model and dataset parameters
     parser.add_argument("--model_name", type=str, default="facebook/wav2vec2-base-960h", help="Pre-trained model name")
-    parser.add_argument("--casi_csv", type=str, required=True, help="Path to CASI CSV file")
-    parser.add_argument("--contro_csv", type=str, required=True, help="Path to CONTROLLI CSV file")
+    # parser.add_argument("--casi_csv", type=str, required=True, help="Path to CASI CSV file")
+    # parser.add_argument("--contro_csv", type=str, required=True, help="Path to CONTROLLI CSV file")
+    parser.add_argument("--data_path", type=str, required=True, help="Path to data")
     parser.add_argument("--output_dir", type=str, default="/kaggle/working/result/cs", help="Output directory for model and results")
 
     # Training parameters

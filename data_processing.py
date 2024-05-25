@@ -4,15 +4,16 @@ import re
 import librosa
 from sklearn.preprocessing import LabelEncoder
 from datasets import Dataset
+import numpy as np
 
-def load_and_preprocess_data(casi_csv, contro_csv):
+def load_and_preprocess_data(casi_csv, contro_csv, path):
     # Read CSV file
     casi_df = pd.read_csv(casi_csv)
     contro_df = pd.read_csv(contro_csv)
 
     # Replace path
-    casi_df['path'] = casi_df['path'].map(lambda x: x.replace("audios/casi", "ipv-casi"))
-    contro_df['path'] = contro_df['path'].map(lambda x: x.replace("audios/controlli", "ipv-controlli"))
+    casi_df['path'] = casi_df['path'].map(lambda x: x.replace("audios/casi", path))
+    contro_df['path'] = contro_df['path'].map(lambda x: x.replace("audios/controlli", path))
 
     # Remove special symbols in the path
     casi_df['path'] = casi_df['path'].apply(remove_special_characters)
@@ -42,8 +43,8 @@ def load_and_preprocess_data(casi_csv, contro_csv):
 def remove_special_characters(text):
     return re.sub(r'[^A-Za-z0-9_( )./-]', '', text)
 
-def preprocess_and_load_dataset(healthy_csv, diseased_csv, modality='both'):
-    cs_df, sv_df = load_and_preprocess_data(healthy_csv, diseased_csv)
+def preprocess_and_load_dataset(healthy_csv, diseased_csv, path, modality='both'):
+    cs_df, sv_df = load_and_preprocess_data(healthy_csv, diseased_csv, path)
     
     if modality == 'cs':
         dataset = Dataset.from_pandas(cs_df)
