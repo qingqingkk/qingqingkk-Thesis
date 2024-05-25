@@ -6,7 +6,7 @@ def load_feature_extractor(model_name):
 
 def extract_features(dataset, processor):
     def _extract_features(batch):
-        inputs = processor(batch["speech"], sampling_rate=16000, padding=True, truncation=True, return_tensors="pt")
+        inputs = processor(batch["speech"], sampling_rate=16000, padding=True, return_tensors="pt")
         batch["input_values"] = inputs.input_values[0]
         return batch
 
