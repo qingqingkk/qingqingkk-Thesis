@@ -11,8 +11,8 @@ def compute_metrics(pred):
     return {"accuracy": accuracy, "f1_score": f1}
 
 def train_and_evaluate(train_val_dataset, model_name, training_args, modality=None):
-    if modality:
-        train_val_dataset = train_val_dataset.filter(lambda x: x['modality'] == modality)
+    # if modality:
+    #     train_val_dataset = train_val_dataset.filter(lambda x: x['modality'] == modality)
     
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
     accuracy_scores = []
