@@ -37,6 +37,6 @@ def parse_arguments():
     if args.strategy == "mid" and args.mid_type == None:
         raise ValueError("You must choose a mid-fusion type between concate and attention")
     if args.strategy == "late" and args.late_type == None:
-        raise ValueError("You must choose a late-fusion type between concate and moe")
+        raise ValueError("You must choose a late-fusion type between average and moe")
     
     return args
