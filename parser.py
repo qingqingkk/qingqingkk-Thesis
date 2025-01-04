@@ -11,7 +11,7 @@ def parse_arguments():
     # dataset parameters
     parser.add_argument("--data_type", type=str, choices=['raw', 'pre-processed'], default="pre-processed", help="type of csv data")
     parser.add_argument("--data_path", type=str, required=True, default="./datasets", help="Path to data")
-    parser.add_argument("--output_dir", type=str, default="./result", help="Output directory for model and results")
+    parser.add_argument("--output_dir", type=str, default="./results", help="Output directory for model and results")
     parser.add_argument("--da", action="store_true", help="Data Augmentation")
     parser.add_argument("--da_percentage", type=float, default=0.3, help="Percentage of da")
     parser.add_argument("--modality", type=str, choices=['cs', 'sv'], default='cs', help="Choose the modality to train on")
@@ -30,7 +30,7 @@ def parse_arguments():
     parser.add_argument("--early_stopping_patience", type=int, default=10, help="early stopping")
     parser.add_argument("--seed", type=int, default=12, help="Random seed")
     parser.add_argument("--cp_name", type=str, default='best_model.pth', help="Check point model name")
-    parser.add_argument("--cp_path", type=str, default='./result/check_points', help="Check point model path")
+    parser.add_argument("--cp_path", type=str, default='./results/check_points', help="Check point model path")
 
     args = parser.parse_args()
 
