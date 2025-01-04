@@ -7,11 +7,12 @@ import os
 import pandas as pd
 from pydub import AudioSegment
 import zipfile
+import parser
 
-
-input_folder = "/kaggle/input/ipv-controlli"    # path of the file you wanna combine
-output_folder = "/kaggle/working/controlli_concat"  # path of the output
-csv_file = "/kaggle/input/ipv-csv/CONTROLLI.csv"  # path of CSV folder
+args = parser.parse_arguments()
+input_folder = args.data_path    # path of the file you wanna combine
+output_folder = os.path.join(input_folder, "controlli_concat")  # path of the output
+csv_file = os.path.join(input_folder, 'CONTROLLI.csv')  # path of CSV folder
 
 # Create output folder if it does not exist
 os.makedirs(output_folder, exist_ok=True)
@@ -81,15 +82,13 @@ for prefix, files in file_dict.items():
 
 # Save the updated CSV file
 df.drop_duplicates(inplace=True)
-updated_csv_file = "/kaggle/working/controlli_concat_file.csv"
+updated_csv_file = os.path.join(input_folder, "controlli_concat_file.csv")
 df.to_csv(updated_csv_file, index=False)
 #  print(f"Processed and saved: {output_file_path}")
 
 
 
 # ########### Compress the generated concatenated audio #######################
-# Define the output folder path
-output_folder = "/kaggle/working/controlli_concat"  
 
 # Compress folders to zip files
 def zip_folder(folder_path, zip_path):
@@ -99,5 +98,5 @@ def zip_folder(folder_path, zip_path):
                 zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), folder_path))
 
 # Call function to compress folder
-zip_file_path = "/kaggle/working/controlli_concat.zip" 
+zip_file_path = os.path.join(input_folder, "controlli_concat.zip") 
 zip_folder(output_folder, zip_file_path)
