@@ -19,17 +19,16 @@ import parser
 
 args = parser.parse_arguments()
 
-print("Please input the csv file you want to concatenate, which file contains two modes: cs and sv")
-input_folder = args.data_path    # the file you wanna combine, 'CASI' or 'Controlli' audio folder
-output = args.output_dir
-output_folder = os.path.join(output, "concatenated")  # path of the output
-# csv_file = os.path.join(input_folder)  # path of CSV folder
+input_csv = args.data_path    # 'CASI.csv' or 'Controlli.csv'
+input_folder = args.audio_folder    # folder contains audios 'CASI' or 'Controlli'
+output = args.output_dir    # output folder
+output_folder = os.path.join(output, "concatenated")  # path of the output concatenated audio
 
 # Create output folder if it does not exist
 os.makedirs(output_folder, exist_ok=True)
 
 # Reading csv
-df = pd.read_csv(input_folder)
+df = pd.read_csv(input_csv)
 
 # remove special symbols
 def remove_special_characters(text):
@@ -94,7 +93,7 @@ for prefix, files in file_dict.items():
 df.drop_duplicates(inplace=True)
 updated_csv_file = os.path.join(input_folder, "concat_file.csv")
 df.to_csv(updated_csv_file, index=False)
-#  print(f"Processed and saved: {output_file_path}")
+print(f"Concatenated audio are saved in: {output_file_path}")
 
 
 

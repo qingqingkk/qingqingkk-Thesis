@@ -10,7 +10,8 @@ def parse_arguments():
 
     # dataset parameters
     parser.add_argument("--data_type", type=str, choices=['raw', 'pre-processed'], default="pre-processed", help="type of csv data")
-    parser.add_argument("--data_path", type=str, required=True, default="./datasets", help="Path to data")
+    parser.add_argument("--data_path", type=str, required=True, default="./datasets", help="Path of dataset csv")
+    parser.add_argument("--audio_folder", type=str,default='./audio',  help="path of audio folder")
     parser.add_argument("--output_dir", type=str, default="./results", help="Output directory for model and results")
     parser.add_argument("--da", action="store_true", help="Data Augmentation")
     parser.add_argument("--da_percentage", type=float, default=0.3, help="Percentage of da")
