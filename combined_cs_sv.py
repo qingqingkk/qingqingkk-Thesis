@@ -1,6 +1,14 @@
-#### This code introduces the method of concatenating cs and sv. It is processed on the original dataset. 
-#### It only needs to be run once to obtain a new data set and save it locally.
-#### This code is based on the operation of Kaggle, and some operations may be special
+#### This code introduces the method of concatenating cs and sv. 
+#### It is processed on the original dataset. 
+#### It only needs to be run once to obtain a new combined dataset and save it locally.
+#### This code is based on the operation of Kaggle, and some operations in the file name may be special.
+
+
+# Step 1: Remove individuals with only one modality of voice recordings (Manually delete files)
+
+# Step 2: Concatenate data based on matching IDs
+
+
 
 import re
 import os
@@ -10,24 +18,25 @@ import zipfile
 import parser
 
 args = parser.parse_arguments()
-input_folder = args.data_path    # path of the file you wanna combine
-output_folder = os.path.join(input_folder, "controlli_concat")  # path of the output
-csv_file = os.path.join(input_folder, 'CONTROLLI.csv')  # path of CSV folder
+
+print("Please input the csv file you want to concatenate, which file contains two modes: cs and sv")
+input_folder = args.data_path    # the file you wanna combine, 'CASI' or 'Controlli' audio folder
+output_folder = os.path.join(input_folder, "concatenated")  # path of the output
+# csv_file = os.path.join(input_folder)  # path of CSV folder
 
 # Create output folder if it does not exist
 os.makedirs(output_folder, exist_ok=True)
 
-# Reading CSV Files
-df = pd.read_csv(csv_file)
+# Reading csv
+df = pd.read_csv(input_folder)
 
-# Define a function to remove special symbols (Sample names in the kaggle dataset do not allow special characters)
+# remove special symbols
 def remove_special_characters(text):
     return re.sub(r'[^A-Za-z0-9_( )./-]', '', text)
 
-# Apply a function to specified columns of a DataFrame
 df['path'] = df['path'].apply(remove_special_characters)
 
-# Used to store each person's file name
+# Ustore each person's file name
 file_dict = {}
 
 # Get a list of all audio files
@@ -82,7 +91,7 @@ for prefix, files in file_dict.items():
 
 # Save the updated CSV file
 df.drop_duplicates(inplace=True)
-updated_csv_file = os.path.join(input_folder, "controlli_concat_file.csv")
+updated_csv_file = os.path.join(input_folder, "concat_file.csv")
 df.to_csv(updated_csv_file, index=False)
 #  print(f"Processed and saved: {output_file_path}")
 
