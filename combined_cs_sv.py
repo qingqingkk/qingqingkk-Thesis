@@ -93,7 +93,7 @@ for prefix, files in file_dict.items():
 df.drop_duplicates(inplace=True)
 updated_csv_file = os.path.join(output_folder, "concat_file.csv")
 df.to_csv(updated_csv_file, index=False)
-print(f"Concatenated audio are saved in: {output_file_path}")
+print(f"Concatenated audio and CSV file are saved in: {output_folder}")
 
 
 
