@@ -192,7 +192,7 @@ class AudioDataset(torch.utils.data.Dataset):
         # NEW: 90% of the audio lengths in the cs dataset are 26, sv dataset are , concatenated 
         self.max_duration = max_duration
         self.augmentation = augmentation
-        self.da_percentage = da_percentage
+        self.da_percentage = da_percentage if augmentation else 0
         self.sr = 16_000
 
     def __getitem__(self, idx):
@@ -387,6 +387,7 @@ def load_data(args):
             max_duration=18,
             augmentation=False  # No argumentation
         )
+
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     valid_loader = DataLoader(valid_dataset, batch_size=args.batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
