@@ -21,7 +21,8 @@ args = parser.parse_arguments()
 
 print("Please input the csv file you want to concatenate, which file contains two modes: cs and sv")
 input_folder = args.data_path    # the file you wanna combine, 'CASI' or 'Controlli' audio folder
-output_folder = os.path.join(input_folder, "concatenated")  # path of the output
+output = args.out_dir
+output_folder = os.path.join(output, "concatenated")  # path of the output
 # csv_file = os.path.join(input_folder)  # path of CSV folder
 
 # Create output folder if it does not exist
@@ -100,12 +101,12 @@ df.to_csv(updated_csv_file, index=False)
 # ########### Compress the generated concatenated audio #######################
 
 # Compress folders to zip files
-def zip_folder(folder_path, zip_path):
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        for root, _, files in os.walk(folder_path):
-            for file in files:
-                zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), folder_path))
+# def zip_folder(folder_path, zip_path):
+#     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+#         for root, _, files in os.walk(folder_path):
+#             for file in files:
+#                 zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), folder_path))
 
-# Call function to compress folder
-zip_file_path = os.path.join(input_folder, "controlli_concat.zip") 
-zip_folder(output_folder, zip_file_path)
+# # Call function to compress folder
+# zip_file_path = os.path.join(input_folder, "controlli_concat.zip") 
+# zip_folder(output_folder, zip_file_path)
