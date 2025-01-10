@@ -21,7 +21,7 @@ args = parser.parse_arguments()
 
 print("Please input the csv file you want to concatenate, which file contains two modes: cs and sv")
 input_folder = args.data_path    # the file you wanna combine, 'CASI' or 'Controlli' audio folder
-output = args.out_dir
+output = args.output_dir
 output_folder = os.path.join(output, "concatenated")  # path of the output
 # csv_file = os.path.join(input_folder)  # path of CSV folder
 
