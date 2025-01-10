@@ -79,7 +79,7 @@ def preprocess_and_load_dataset(healthy_csv, diseased_csv, path, modality):
 Load prepared data
 '''
 class MidFusion_AudioDataset(torch.utils.data.Dataset):
-    def __init__(self, cs_examples, sv_examples, feature_extractor, max_duration, da_percentage, augmentation=False):
+    def __init__(self, cs_examples, sv_examples, feature_extractor, max_duration, da_percentage=0, augmentation=False):
         self.cs_path = cs_examples['path'].tolist()  # Convert paths to a list of strings
         self.sv_path = sv_examples['path'].tolist()
         self.labels = cs_examples['label'].tolist()
@@ -184,7 +184,7 @@ class MidFusion_AudioDataset(torch.utils.data.Dataset):
         return audio
     
 class AudioDataset(torch.utils.data.Dataset):
-    def __init__(self, examples, feature_extractor, max_duration, da_percentage, augmentation=False):
+    def __init__(self, examples, feature_extractor, max_duration, da_percentage=0, augmentation=False):
         self.data_path = examples['path'].tolist()  # Convert paths to a list of strings
         self.labels = examples['label'].tolist()
         self.feature_extractor = feature_extractor
