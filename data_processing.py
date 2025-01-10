@@ -64,16 +64,16 @@ def preprocess_and_load_dataset(healthy_csv, diseased_csv, path, modality):
         combined_df = pd.concat([cs_df, sv_df], ignore_index=True)
         dataset = Dataset.from_pandas(combined_df)
     
-    dataset = dataset.map(speech_file_to_array_fn)
+    # dataset = dataset.map(speech_file_to_array_fn)
     return dataset
 
-def speech_file_to_array_fn(batch):
-    speech_array, sampling_rate = librosa.load(batch["path"], sr=None)
-    target_sampling_rate = 16000
-    if sampling_rate != target_sampling_rate:
-        speech_array = librosa.resample(speech_array, orig_sr=sampling_rate, target_sr=target_sampling_rate)
-    batch["speech"] = np.array(speech_array)
-    return batch
+# def speech_file_to_array_fn(batch):
+#     speech_array, sampling_rate = librosa.load(batch["path"], sr=None)
+#     target_sampling_rate = 16000
+#     if sampling_rate != target_sampling_rate:
+#         speech_array = librosa.resample(speech_array, orig_sr=sampling_rate, target_sr=target_sampling_rate)
+#     batch["speech"] = np.array(speech_array)
+#     return batch
 
 '''
 Load prepared data
@@ -88,7 +88,7 @@ class MidFusion_AudioDataset(torch.utils.data.Dataset):
         # NEW: 90% of the audio lengths in the cs dataset are 26, sv dataset are , concatenated 
         self.max_duration = max_duration
         self.augmentation = augmentation
-        self.da_percentage = da_percentage
+        self.da_percentage = da_percentage if augmentation else 0
         self.sr = 16_000
 
     def __getitem__(self, idx):
@@ -334,7 +334,8 @@ def load_data(args):
             cs_examples=cs[1],
             feature_extractor=processor,
             max_duration=18,
-            augmentation=False 
+            augmentation=False,
+            
         )
 
         cs_test_dataset = AudioDataset(
