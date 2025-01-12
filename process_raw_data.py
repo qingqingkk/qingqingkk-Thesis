@@ -38,7 +38,7 @@ def preprocess_data(data_path, output_dir):
     # save into the CSV files
     cs_df.to_csv(os.path.join(output_dir, 'cs_dataset.csv'), index=False)
     sv_df.to_csv(os.path.join(output_dir, 'sv_dataset.csv'), index=False)
-    print(f'Sucess! Save cs file in {os.path.join(output_dir, 'cs_dataset.csv')} and sv file in {os.path.join(output_dir, 'sv_dataset.csv')}')
+    print(f"Sucess! Save cs file in {os.path.join(output_dir, 'cs_dataset.csv')} and sv file in {os.path.join(output_dir, 'sv_dataset.csv')}")
 
 def remove_special_characters(text):
     return re.sub(r'[^A-Za-z0-9_( )./-]', '', text)
