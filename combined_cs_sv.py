@@ -94,7 +94,7 @@ def combine_cs_sv(data_path, output_dir):
             # Update path information in CSV record
             for index, row in casi_df.iterrows():
                 if cs_filename in row['path']  or sv_filename in row['path']:
-                    casi_df.at[index, 'path'] = output_filename
+                    casi_df.at[index, 'path'] = os.path.join('concatenated', output_filename)
     print(f'Sucessed! the audio file are saved in {output_folder}')
 
     # Save the updated CSV file
