@@ -61,5 +61,7 @@ def parse_arguments():
 
 if __name__ == "__main__":
     args = parse_arguments()
-    preprocess_data(args)
+    data_path = args.data_path
+    output_dir = args.output_dir
+    preprocess_data(data_path, output_dir)
 
