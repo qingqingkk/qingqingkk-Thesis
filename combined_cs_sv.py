@@ -118,6 +118,7 @@ def combine_cs_sv(data_path, output_dir):
                 zipf.write(csv_file, os.path.basename(csv_file))
             else:
                 raise FileNotFoundError(f"Cannot find {csv_file}")
+            print(f'Compressed file are save in {zip_file_path}')
         # Call function to compress folder
         zip_file_path = os.path.join(output_folder, "CS_SV_concat.zip") 
         _zip_folder(output_folder, updated_csv_file, zip_file_path)
