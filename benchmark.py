@@ -2,9 +2,7 @@ import numpy as np
 import os
 from sklearn.preprocessing import StandardScaler
 from datasets import Dataset
-from tqdm import tqdm
 import librosa
-import resampy
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from tensorflow.keras.utils import to_categorical
@@ -14,7 +12,7 @@ from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Conv2D, MaxPooling2D,GlobalAveragePooling2D, Flatten, Dense, Dropout, BatchNormalization, Activation
 from tensorflow.keras.applications import MobileNetV2
 
-from data_processing import load_csv
+from dataset import load_csv
 
 def process_audio_dataset(dataset, max_duration, n_mfcc=40, sr=16000):
     mfcc_list = []  # Initialize MFCC list
