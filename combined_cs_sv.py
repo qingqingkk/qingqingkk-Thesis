@@ -111,7 +111,7 @@ def combine_cs_sv(data_path, output_dir):
     if args.save_compress:
         def _zip_folder(audio_path, csv_file, zip_path):
             with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                for root, _, files in os.walk(audio_path):
+                for root, _, files in tqdm(os.walk(audio_path)):
                     for file in files:
                         zipf.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), audio_path))
             if os.path.exists(csv_file):
