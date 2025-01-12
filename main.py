@@ -5,7 +5,7 @@ import os
 import json
 from datetime import datetime
 
-from data_processing import preprocess_and_load_dataset, load_data
+from dataset import load_data
 from feature_extraction import extract_features
 from train import train_and_evaluate, late_fusion_val_test
 from model import load_model
@@ -18,24 +18,11 @@ def main(args):
     random.seed(args.seed)
     np.random.seed(args.seed)
     start_time = datetime.now()
-    if args.data_type == 'raw':
 
-        # Load and preprocess raw data
-        dataset = preprocess_and_load_dataset(os.path.join(args.data_path, 'CASI.csv'), os.path.join(args.data_path, 'CONTROLLI.csv'), args.data_path, args.modality)
-
-        # Load feature extractor
-        processor = Wav2Vec2Processor.from_pretrained(args.model_name)
-
-        # Extract features
-        dataset = extract_features(dataset, processor)
-
-        # Split the dataset into training and final test set
-        train_val_dataset, test_dataset = dataset.train_test_split(test_size=args.test_size, seed=args.seed).values()
+    if args.strategy == 'late':
+        cs_loader, sv_loader = load_data(args)
     else:
-        if args.strategy == 'late':
-            cs_loader, sv_loader = load_data(args)
-        else:
-            train_loader, valid_loader, test_loader = load_data(args)
+        train_loader, valid_loader, test_loader = load_data(args)
 
     # Get model
     models = load_model(args)
