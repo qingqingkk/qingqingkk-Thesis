@@ -99,7 +99,7 @@ def combine_cs_sv(data_path, output_dir):
 
     # Save the updated CSV file
     casi_df.drop_duplicates(inplace=True)
-    updated_csv_file = os.path.join(output_dir, "concat_file.csv")
+    updated_csv_file = os.path.join(output_dir, "concat_dataset.csv")
     casi_df.to_csv(updated_csv_file, index=False)
     print(f"Concatenated audio and CSV file are saved in: {updated_csv_file}")
 

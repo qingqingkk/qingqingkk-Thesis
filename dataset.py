@@ -216,7 +216,7 @@ def load_csv(args):
         raise FileNotFoundError(f"Cannot find '{sv_path}' please check the path or run process_raw_data.py")
     
     if args.strategy == 'early':
-        concat_path = os.path.join(data_path, 'concat_file.csv')
+        concat_path = os.path.join(data_path, 'concat_dataset.csv')
         if os.path.exists(sv_path):
             pass
         else:
