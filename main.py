@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 from dataset_loader import load_data
-from train import train_and_evaluate, late_fusion_val_test
+from train import train_and_evaluate, late_fusion_val_test, trainer
 from model import load_model
 from benchmark import benchmark_train_test
 

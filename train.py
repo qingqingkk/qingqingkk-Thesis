@@ -5,6 +5,7 @@ import os
 import torch.optim as optim
 import torch.nn.functional as F
 from tqdm import tqdm
+import random
 
 from sklearn.neural_network import MLPClassifier
 
