@@ -1,32 +1,21 @@
 import numpy as np
-from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score, f1_score
-from transformers import Wav2Vec2Processor
-from feature_extraction import load_feature_extractor
-import librosa
-import random
 import torch
 import os
-import pandas as pd
-import datasets
 import torch.optim as optim
-from torch.utils.data import DataLoader, Subset
-from torch.optim.lr_scheduler import StepLR
-import torch.nn as nn
 import torch.nn.functional as F
-import torchaudio.transforms as T
 from tqdm import tqdm
 
 from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import accuracy_score, f1_score
 import numpy as np
-from sklearn.preprocessing import StandardScaler
+
 
 def compute_metrics(pred):
     labels = pred.label_ids
     preds = np.argmax(pred.predictions, axis=1)
     accuracy = accuracy_score(labels, preds)
-    f1 = f1_score(labels, preds, average='weighted')
+    f1 = f1_score(labels, preds, average='macro')
     return {"accuracy": accuracy, "f1_score": f1}
 
 def train_and_evaluate(dataloader, model, start_time, args):
