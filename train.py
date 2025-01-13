@@ -12,7 +12,7 @@ from utils import compute_metrics, training_args, create_weighted_trainer
 from transformers import AutoModelForAudioClassification, EarlyStoppingCallback, Trainer
 
 def trainer(args, train_dataset,valid_dataset, test_dataset):
-    seed=args.SEED
+    seed=args.seed
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
