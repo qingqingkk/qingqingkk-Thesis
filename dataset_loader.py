@@ -23,8 +23,8 @@ Modules:
 
 class AudioDataset(Dataset):
     def __init__(self, examples, feature_extractor, max_duration, sr=16000, augmentation=False, da_percentage=0):
-        self.audio_paths = examples['path'].tolist()
-        self.labels = examples['label'].tolist()
+        self.audio_paths = examples['path']
+        self.labels = examples['label']
         self.feature_extractor = feature_extractor
         self.max_duration = max_duration
         self.sr = sr
@@ -76,9 +76,9 @@ class AudioDataset(Dataset):
 
 class MidFusionAudioDataset(Dataset):
     def __init__(self, cs_examples, sv_examples, feature_extractor, max_duration, sr=16000, augmentation=False, da_percentage=0):
-        self.cs_paths = cs_examples['path'].tolist()
-        self.sv_paths = sv_examples['path'].tolist()
-        self.labels = cs_examples['label'].tolist()
+        self.cs_paths = cs_examples['path']
+        self.sv_paths = sv_examples['path']
+        self.labels = cs_examples['label']
         self.feature_extractor = feature_extractor
         self.max_duration = max_duration
         self.sr = sr
