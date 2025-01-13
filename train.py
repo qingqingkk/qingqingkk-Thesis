@@ -6,11 +6,9 @@ import torch.optim as optim
 import torch.nn.functional as F
 from tqdm import tqdm
 import random
-
 from sklearn.neural_network import MLPClassifier
-
 import numpy as np
-from utils import compute_metrics, train_args, create_weighted_trainer
+from utils import compute_metrics, training_args, create_weighted_trainer
 from transformers import AutoModelForAudioClassification, EarlyStoppingCallback, Trainer
 
 def trainer(args, train_dataset,valid_dataset, test_dataset):
@@ -25,7 +23,7 @@ def trainer(args, train_dataset,valid_dataset, test_dataset):
         # Define the Trainer
         trainer = Trainer(
             model=model,
-            args=train_args,
+            args=training_args(args),
             train_dataset=train_dataset,
             eval_dataset=valid_dataset,
             compute_metrics=compute_metrics,
@@ -35,7 +33,7 @@ def trainer(args, train_dataset,valid_dataset, test_dataset):
         WeightedTrainer = create_weighted_trainer(model, train_dataset)
         trainer = WeightedTrainer(
             model=model,
-            args=train_args,
+            args=training_args(args),
             train_dataset=train_dataset,
             eval_dataset=valid_dataset,
             compute_metrics=compute_metrics,

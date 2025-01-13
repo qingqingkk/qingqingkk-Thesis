@@ -4,21 +4,24 @@ from torch.nn import CrossEntropyLoss
 import torch
 from transformers import Trainer, TrainingArguments
 
-train_args = TrainingArguments(
-    output_dir=args.cp_path,
-    eval_strategy='epoch',
-    save_strategy='epoch',
-    logging_strategy='epoch',
-    save_total_limit=2,
-    learning_rate=args.learning_rate,
-    weight_decay=0.01,
-    per_device_train_batch_size=args.batch_size,
-    per_device_eval_batch_size=args.batch_size,
-    num_train_epochs=args.num_train_epochs,
-    load_best_model_at_end=True,
-    greater_is_better=True,
-    metric_for_best_model='accuracy',
-)
+def training_args(args):
+    train_args = TrainingArguments(
+        output_dir=args.cp_path,
+        eval_strategy='epoch',
+        save_strategy='epoch',
+        logging_strategy='epoch',
+        save_total_limit=2,
+        learning_rate=args.learning_rate,
+        weight_decay=0.01,
+        per_device_train_batch_size=args.batch_size,
+        per_device_eval_batch_size=args.batch_size,
+        num_train_epochs=args.num_train_epochs,
+        load_best_model_at_end=True,
+        greater_is_better=True,
+        metric_for_best_model='accuracy',
+    )
+    return train_args
+
 
 def create_weighted_trainer(train_dataset, device="cuda" if torch.cuda.is_available() else "cpu"):
     # Get labels from the training dataset
