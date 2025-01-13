@@ -7,6 +7,7 @@ import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from transformers import Wav2Vec2Processor
+from datasets import Dataset as HFDataset  # 使用别名 HFDataset
 
 
 """
@@ -176,13 +177,13 @@ def load_data(args):
     if args.strategy == 'mid':
         (cs_train, cs_valid, cs_test), (sv_train, sv_valid, sv_test) = load_csv(args)
 
-        cs_train = Dataset.from_pandas(cs_train)
-        cs_valid = Dataset.from_pandas(cs_valid)
-        cs_test = Dataset.from_pandas(cs_test)
+        cs_train = HFDataset.from_pandas(cs_train)
+        cs_valid = HFDataset.from_pandas(cs_valid)
+        cs_test = HFDataset.from_pandas(cs_test)
 
-        sv_train = Dataset.from_pandas(sv_train)
-        sv_valid = Dataset.from_pandas(sv_valid)
-        sv_test = Dataset.from_pandas(sv_test)
+        sv_train = HFDataset.from_pandas(sv_train)
+        sv_valid = HFDataset.from_pandas(sv_valid)
+        sv_test = HFDataset.from_pandas(sv_test)
 
 
         return (
@@ -194,13 +195,13 @@ def load_data(args):
     elif args.strategy == 'late':
         (cs_train, cs_valid, cs_test), (sv_train, sv_valid, sv_test) = load_csv(args)
 
-        cs_train = Dataset.from_pandas(cs_train)
-        cs_valid = Dataset.from_pandas(cs_valid)
-        cs_test = Dataset.from_pandas(cs_test)
+        cs_train = HFDataset.from_pandas(cs_train)
+        cs_valid = HFDataset.from_pandas(cs_valid)
+        cs_test = HFDataset.from_pandas(cs_test)
 
-        sv_train = Dataset.from_pandas(sv_train)
-        sv_valid = Dataset.from_pandas(sv_valid)
-        sv_test = Dataset.from_pandas(sv_test)
+        sv_train = HFDataset.from_pandas(sv_train)
+        sv_valid = HFDataset.from_pandas(sv_valid)
+        sv_test = HFDataset.from_pandas(sv_test)
 
         return [
             DataLoader(AudioDataset(cs_valid, processor, args.max_duration), batch_size=args.batch_size),
@@ -213,9 +214,9 @@ def load_data(args):
     elif args.strategy == 'benchmark':
         train, valid, test = load_csv(args)
 
-        train = Dataset.from_pandas(train)
-        valid = Dataset.from_pandas(valid)
-        test = Dataset.from_pandas(test)
+        train = HFDataset.from_pandas(train)
+        valid = HFDataset.from_pandas(valid)
+        test = HFDataset.from_pandas(test)
 
         return train, valid, test
     
@@ -223,9 +224,9 @@ def load_data(args):
         ### single mode or early fusion
         train, valid, test = load_csv(args)
 
-        train = Dataset.from_pandas(train)
-        valid = Dataset.from_pandas(valid)
-        test = Dataset.from_pandas(test)
+        train = HFDataset.from_pandas(train)
+        valid = HFDataset.from_pandas(valid)
+        test = HFDataset.from_pandas(test)
 
         return (
             DataLoader(AudioDataset(train, processor, args.max_duration, augmentation=args.da, da_percentage=args.da_percentage), batch_size=args.batch_size, shuffle=True),
