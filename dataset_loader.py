@@ -52,7 +52,6 @@ class AudioDataset(Dataset):
 
         return {
             'input_values': inputs['input_values'].squeeze(0),
-            'attention_mask': inputs['attention_mask'].squeeze(0),
             'label': torch.tensor(self.labels[idx], dtype=torch.long)
         }
 
