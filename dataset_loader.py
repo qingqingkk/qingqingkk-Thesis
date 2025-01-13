@@ -156,6 +156,7 @@ def load_csv(args):
         train, valid = train_test_split(train_valid, test_size=0.1111, stratify=train_valid['label'], random_state=SEED)
         return train, valid, test
 
+
     cs_df = read_csv(data_path, 'cs_dataset.csv')
     sv_df = read_csv(data_path, 'sv_dataset.csv')
 
@@ -174,6 +175,16 @@ def load_data(args):
 
     if args.strategy == 'mid':
         (cs_train, cs_valid, cs_test), (sv_train, sv_valid, sv_test) = load_csv(args)
+
+        cs_train = Dataset.from_pandas(cs_train)
+        cs_valid = Dataset.from_pandas(cs_valid)
+        cs_test = Dataset.from_pandas(cs_test)
+
+        sv_train = Dataset.from_pandas(sv_train)
+        sv_valid = Dataset.from_pandas(sv_valid)
+        sv_test = Dataset.from_pandas(sv_test)
+
+
         return (
             MidFusionAudioDataset(cs_train, sv_train, processor, args.max_duration, augmentation=args.da, da_percentage=args.da_percentage),
             MidFusionAudioDataset(cs_valid, sv_valid, processor, args.max_duration),
@@ -182,6 +193,15 @@ def load_data(args):
     
     elif args.strategy == 'late':
         (cs_train, cs_valid, cs_test), (sv_train, sv_valid, sv_test) = load_csv(args)
+
+        cs_train = Dataset.from_pandas(cs_train)
+        cs_valid = Dataset.from_pandas(cs_valid)
+        cs_test = Dataset.from_pandas(cs_test)
+
+        sv_train = Dataset.from_pandas(sv_train)
+        sv_valid = Dataset.from_pandas(sv_valid)
+        sv_test = Dataset.from_pandas(sv_test)
+
         return [
             DataLoader(AudioDataset(cs_valid, processor, args.max_duration), batch_size=args.batch_size),
             DataLoader(AudioDataset(cs_test, processor, args.max_duration), batch_size=args.batch_size)
@@ -190,9 +210,23 @@ def load_data(args):
             DataLoader(AudioDataset(sv_test, processor, args.max_duration), batch_size=args.batch_size)
         ]
     
+    elif args.strategy == 'benchmark':
+        train, valid, test = load_csv(args)
+
+        train = Dataset.from_pandas(train)
+        valid = Dataset.from_pandas(valid)
+        test = Dataset.from_pandas(test)
+
+        return train, valid, test
+    
     else:
         ### single mode or early fusion
         train, valid, test = load_csv(args)
+
+        train = Dataset.from_pandas(train)
+        valid = Dataset.from_pandas(valid)
+        test = Dataset.from_pandas(test)
+
         return (
             DataLoader(AudioDataset(train, processor, args.max_duration, augmentation=args.da, da_percentage=args.da_percentage), batch_size=args.batch_size, shuffle=True),
             DataLoader(AudioDataset(valid, processor, args.max_duration), batch_size=args.batch_size),
