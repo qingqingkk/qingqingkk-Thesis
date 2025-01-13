@@ -151,7 +151,7 @@ def load_csv(args):
     SEED = args.seed
 
     if args.strategy == 'early' or 'benchmark' or 'single':
-        df = read_csv(data_path)
+        df = pd.read_csv(csv_path)
         train_valid, test = train_test_split(df, test_size=0.1, stratify=df['label'], random_state=20)
         train, valid = train_test_split(train_valid, test_size=0.1111, stratify=train_valid['label'], random_state=SEED)
         return train, valid, test
