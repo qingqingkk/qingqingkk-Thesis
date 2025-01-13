@@ -1,15 +1,3 @@
-#### This code introduces the method of concatenating cs and sv. 
-#### It is processed on the original dataset. 
-#### It only needs to be run once to obtain a new combined dataset and save it locally.
-#### This code is based on the operation of Kaggle, and some operations in the file name may be special.
-
-
-# Step 1: Remove individuals with only one modality of voice recordings (Manually delete files)
-
-# Step 2: Concatenate data based on matching IDs
-
-
-
 import re
 import os
 import pandas as pd
@@ -18,6 +6,22 @@ import zipfile
 import argparse
 
 from tqdm import tqdm
+
+
+"""
+Script for combining CS and SV audio data.
+
+This script processes raw datasets by concatenating audio files (`cs` and `sv`) for each individual
+with matching IDs. 
+The resulting concatenated audio files and updated CSV metadata are saved to the specified output directory.
+
+Features:
+1. Removes individuals with only one modality of voice recordings (manual step).
+2. Concatenates `cs` and `sv` audio files with optional trimming and silent separation.
+3. Optionally compresses the processed files into a zip archive for easy download.
+
+"""
+
 
 
 def combine_cs_sv(data_path, output_dir): 
@@ -73,22 +77,26 @@ def combine_cs_sv(data_path, output_dir):
             cs_path = os.path.join(data_path, cs_filename)
             sv_path = os.path.join(data_path, sv_filename)
             
-            # Read cs and sv audio files
+            # Read audio files
             cs_audio = AudioSegment.from_file(cs_path)
             sv_audio = AudioSegment.from_file(sv_path)
+
+            # Trim cs to 19 seconds and sv to 18 seconds 
+            # Same length as single-mode method, manually adjust according to your needs
+            cs_audio = cs_audio[:19000]
+            sv_audio = sv_audio[:18000]
 
             # Create a 1 second silence segment to separate
             silent_seperator = AudioSegment.silent(duration=1000)  # 1000 millisecond = 1 second
             
-            # Example: Processing audio, here is simply splicing audio
+            # concatenated audio
             combined_audio = cs_audio +  silent_seperator + sv_audio
 
-            # Build output file path
+            # output
             output_filename = f"{os.path.basename(cs_filename).rsplit('_', 1)[0]}_combined.wav"
             output_file_path = os.path.join(output_folder, output_filename)
-            # print(output_filename)
 
-            # Save the processed audio file
+            # Save
             combined_audio.export(output_file_path, format="wav")
             
             # Update path information in CSV record

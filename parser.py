@@ -14,7 +14,9 @@ def parse_arguments():
     parser.add_argument("--da", action="store_true", help="Data Augmentation")
     parser.add_argument("--da_percentage", type=float, default=0.3, help="Percentage of da")
     parser.add_argument("--modality", type=str, choices=['cs', 'sv'], default='cs', help="Choose the modality to train on")
-    parser.add_argument("--num_classes", type=int, default=2, help="Choose the task - binary 2 classes, multiple 8 classes")
+    parser.add_argument("--num_classes", type=int, default=2, help="Choose the task - binary 2 classes, multiple classes")
+    parser.add_argument("--max_duration", type=int, default=18, help="Sets the truncated length of audio samples")
+
 
     # Model parameters
     parser.add_argument("--model_name", type=str, default="facebook/wav2vec2-base-960h", help="Pre-trained model name")

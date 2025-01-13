@@ -14,7 +14,13 @@ from tensorflow.keras.applications import MobileNetV2
 
 from dataset import load_csv
 
-def process_audio_dataset(dataset, max_duration, n_mfcc=40, sr=16000):
+'''
+
+Contains the mfcc feature extraction process and the use of three benchmark models
+
+'''
+
+def process_audio_dataset(args, dataset, max_duration, n_mfcc=40, sr=16000):
     mfcc_list = []  # Initialize MFCC list
     label_list = []  # Initialize label list
     max_samples = int(sr * max_duration)
@@ -33,7 +39,7 @@ def process_audio_dataset(dataset, max_duration, n_mfcc=40, sr=16000):
         mfcc_list.append(mfcc.T)  # Transpose MFCC to shape (time_steps, n_mfcc)
         
         # One-hot encode labels
-        one_hot_label = np.eye(2)[label]
+        one_hot_label = np.eye(args.num_classes)[label]
         label_list.append(one_hot_label)
 
     # Pad MFCC sequences to the same length
@@ -49,26 +55,26 @@ def process_audio_dataset(dataset, max_duration, n_mfcc=40, sr=16000):
     }
 
 def mlp(args, x_train, y_train, x_valid, y_valid, x_test, y_test):
-
+    # save path
     ckp_path = os.path.join(args.output_dir, 'benchmark', f'MLP_{args.modality}_{args.num_classes}_{args.seed}.weights.h5')
 
+    # setting parameters and layers
     learning_rate = 0.01
     batch_size = 16
-
     n_input = x_train[0].shape
     n_hidden_1 = 50
     n_hidden_2 = 50
     n_classes = args.num_classes
 
+    # model structure
     inputs = tf.keras.Input(shape=n_input)
-
     x = tf.keras.layers.Dense(n_hidden_1, activation='relu')(inputs)
     x = tf.keras.layers.Dense(n_hidden_2, activation='relu')(x)
     x = tf.keras.layers.GlobalAveragePooling1D()(x)
-        
     predictions = tf.keras.layers.Dense(n_classes, activation='softmax')(x)
     model = tf.keras.Model(inputs=inputs, outputs=predictions)
     
+    # choose the classify tasks
     if n_classes == 2:
 
         model.compile(optimizer=tf.optimizers.Adam(learning_rate=learning_rate),
@@ -81,6 +87,7 @@ def mlp(args, x_train, y_train, x_valid, y_valid, x_test, y_test):
                       loss='sparse_categorical_crossentropy' if y_train.ndim == 1 else 'categorical_crossentropy',
                       metrics=['accuracy'])
     
+
     callback_earlystop = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                               patience=10)
     callback_list = [
@@ -90,8 +97,10 @@ def mlp(args, x_train, y_train, x_valid, y_valid, x_test, y_test):
             save_weights_only=True, save_best_only=True
        )]
     
+    # train
     history = model.fit(x_train, y_train, batch_size=batch_size, epochs=50, validation_data=(x_valid, y_valid), callbacks=[callback_earlystop, callback_list])
-
+    
+    # load the best weights
     model.load_weights(ckp_path)
 
     print("------Validation------")
@@ -116,10 +125,12 @@ def mlp(args, x_train, y_train, x_valid, y_valid, x_test, y_test):
 def build_lightweight_cnn(args, x_train, y_train, x_valid, y_valid, x_test, y_test, trainable=False):
     learning_rate = 0.01
     batch_size = 16
+
     if trainable == False:
         save_path = os.path.join(args.output_dir, 'benchmark', f'CNN_{args.modality}_{args.num_classes}_{args.seed}_freeze.weights.h5')
     else:
         save_path = os.path.join(args.output_dir, 'benchmark', f'CNN_{args.modality}_{args.num_classes}_{args.seed}.weights.h5')
+    
     # Ensure the input shape matches MobileNetV2 expected input
     n_input = x_train.shape[1:]  # (num_samples, height, width, channels)
     num_classes = args.num_classes
@@ -138,6 +149,7 @@ def build_lightweight_cnn(args, x_train, y_train, x_valid, y_valid, x_test, y_te
     # Freeze all layers in base model
     for layer in base_model.layers:
         layer.trainable = trainable
+
     if num_classes == 2:
         model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
                       loss='binary_crossentropy', metrics=['accuracy'])
@@ -156,6 +168,7 @@ def build_lightweight_cnn(args, x_train, y_train, x_valid, y_valid, x_test, y_te
             save_weights_only=True, save_best_only=True
        )]
 
+    # train
     history = model.fit(x_train, y_train, batch_size=batch_size, epochs=50, 
                         validation_data=(x_valid, y_valid), 
                         callbacks=[callback_earlystop, callback_list])
@@ -185,6 +198,7 @@ def benchmark_train_test(args):
     result['seed'] = args.seed
     result['modality'] = args.modality
     out_path = os.path.join(args.output_dir, 'benchmark')
+    
     if not os.path.exists(out_path):
         os.makedirs(out_path)
 

@@ -22,7 +22,7 @@ class MidFusion_AudioDataset(torch.utils.data.Dataset):
         self.sv_path = sv_examples['path'].tolist()
         self.labels = cs_examples['label'].tolist()
         self.feature_extractor = feature_extractor
-        # IPV: 90% of the audio lengths in the cs dataset are 19, sv dataset are 18, concatenated 35
+        # IPV: 90% of the audio lengths in the cs dataset are 19, sv dataset are 18, concatenated 38
         # NEW: 90% of the audio lengths in the cs dataset are 26, sv dataset are , concatenated 
         self.max_duration = max_duration
         self.augmentation = augmentation
@@ -264,7 +264,7 @@ def load_data(args):
             cs_examples=cs[0],
             sv_examples=sv[0],
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=args.da 
         )
         
@@ -272,7 +272,7 @@ def load_data(args):
             cs_examples=cs[1],
             sv_examples=sv[1],
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=False 
         )
 
@@ -280,7 +280,7 @@ def load_data(args):
             cs_examples=cs[2],
             sv_examples=sv[2],
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=False  # No argumentation
         )
     elif args.strategy == 'late':
@@ -289,28 +289,28 @@ def load_data(args):
         cs_valid_dataset = AudioDataset(
             cs_examples=cs[1],
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=False 
         )
 
         cs_test_dataset = AudioDataset(
             cs_examples=cs[2],
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=False  # No argumentation
         )
 
         sv_valid_dataset = AudioDataset(
             sv_examples=sv[1],
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=False 
         )
 
         sv_test_dataset = AudioDataset(
             sv_examples=sv[2],
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=False  # No argumentation
         )
         cs_valid_loader = DataLoader(cs_valid_dataset, batch_size=args.batch_size, shuffle=False)
@@ -324,14 +324,14 @@ def load_data(args):
         train_dataset = AudioDataset(
             examples=train_df,
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=args.da 
         )
         
         valid_dataset = AudioDataset(
             examples=valid_df,
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=False 
         )
 
@@ -339,7 +339,7 @@ def load_data(args):
         test_dataset = AudioDataset(
             examples=test_df,
             feature_extractor=processor,
-            max_duration=18,
+            max_duration=args.max_duration,
             augmentation=False  # No argumentation
         )
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)

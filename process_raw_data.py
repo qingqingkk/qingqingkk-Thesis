@@ -4,9 +4,17 @@ import re
 from sklearn.preprocessing import LabelEncoder
 import argparse
 
-'''
-Process raw data
-'''
+"""
+Preprocess raw data for CS and SV datasets.
+
+This script processes the Raw Dataset by:
+1. Separating `cs` and `sv` voice recordings into two datasets.
+2. Removing special symbols from paths.
+3. Encoding labels.
+4. Saving the processed data into two separate CSV files.
+
+"""
+
 def preprocess_data(data_path, output_dir):
     # Read CSV file
     casi_df = pd.read_csv(os.path.join(data_path, 'CASI.csv'))
