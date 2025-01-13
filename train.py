@@ -17,9 +17,9 @@ def trainer(args, train_dataset,valid_dataset, test_dataset):
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    model = AutoModelForAudioClassification.from_pretrained(args.model_name, num_labels=args.num_calsses)
+    model = AutoModelForAudioClassification.from_pretrained(args.model_name, num_labels=args.num_classes)
 
-    if args.num_calsses == 2:
+    if args.num_classes == 2:
         # Define the Trainer
         trainer = Trainer(
             model=model,
