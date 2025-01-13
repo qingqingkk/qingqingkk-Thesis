@@ -28,7 +28,7 @@ def main(args):
     if args.strategy == 'late':
         result = late_fusion_val_test(args, models, cs_loader, sv_loader)
     elif args.strategy == 'benchmark':
-        result = benchmark_train_test(args)
+        result = benchmark_train_test(args, train_loader, valid_loader,test_loader)
     else:
         result = train_and_evaluate([train_loader, valid_loader, test_loader], models, start_time, args)
     
