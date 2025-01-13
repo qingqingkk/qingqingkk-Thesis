@@ -1,5 +1,5 @@
 import torch.nn as nn
-from transformers import AutoModelForAudioClassification,Wav2Vec2Model, Wav2Vec2Processor
+from transformers import AutoModelForAudioClassification,Wav2Vec2Model
 import torch
 import os
 

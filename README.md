@@ -1,42 +1,60 @@
 # Voice Disorder Diagnoses
-## Fine-tune with cs or sv
-The baseline of this paper
-### how to use it
-- Please make sure your dataset folder as the following structure:
+
+##### Dataset
+raw Dataset
+├── Controlli
+│    ├──healthy1_cs.wav
+│    ├──healthy1_sv.wav
+│    └──...
+├── CASI
+│    ├──patient1_cs.wav
+│    ├──patient1_sv.wav
+│    └──...
+├── Controlli.csv
+├── CASI.csv
+
+
+<!-- - Separate the data of the two modalities (For unimodal models)
+
 ```
-datasets/
+separated Dataset
 ├── cs
-│    ├──audio1_cs.wav
-│    ├──audio2_cs.wav
+│    ├──healthy1_cs.wav
+│    ├──patient1_cs.wav
 │    └──...
 ├── sv
-│    ├──audio1_sv.wav
-│    ├──audio2_sv.wav
-│    └──...
-├── combined
-│    ├──audio1_combined.wav
-│    ├──audio2_combined.wav
+│    ├──healthy1_sv.wav
+│    ├──patient1_sv.wav
 │    └──...
 ├── cs_dataset.csv
 ├── sv_dataset.csv
+``` -->
+
+# (Early Fusion) get concatenated audio from raw dataset
+Run:
+$python combined_cs_sv.py  --data_path='CONTROLLI.csv' --audio_folder='ipv-controlli' --output_dir='./results'
+```
+Concatenated dataset
+├── healthy1_combined.wav
+├── patient1_combined.wav
 └── concatenate.csv
-
-```
-#### Run the code
-```
-$python3 main.py --data_path=./datasets --output_dir=./results --modality=cs 
 ```
 
-## Data argument cs or sv
+##### Run the code
+```
+$python main.py --data_path=./datasets --output_dir=./results --modality=cs 
+```
+
+## Data augment cs or sv
 ### How to activate it
 ```
-$python3 main.py --data_path=./datasets --output_dir=./results --modality=cs --da
+$python main.py --data_path=./datasets --output_dir=./results --modality=cs --da
 ```
 #### Augument methods
 todo
 
 ## Benchmark
-With MLP(Multilayer Perceptron) or CNN (freeze/not freeze can be chosen)
+Continuously evaluate MLP(Multilayer Perceptron), 2D-CNN fine-tuning classification head, and 2D-CNN fine-tuning all layers. No separate evaluation of any of the models is set
 #### Run the code
 ```
 $python3 main.py --data_path=./datasets --output_dir=./results --strategy=benchmark
@@ -48,4 +66,5 @@ $python3 main.py --data_path=./datasets --output_dir=./results --strategy=benchm
 - **Early fusion**: Concatenate two modality data
 - **Mid fusion**: Combine embedding features, we have two methods, concatenate and cross-attention
 - **Late fusion**: Combine output probabilities, we have two methods, simple average, and MoE method. Before you use it, make sure you've finished the fine-tuning of two independent models.
+
 

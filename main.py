@@ -5,13 +5,11 @@ import os
 import json
 from datetime import datetime
 
-from dataset import load_data
-from feature_extraction import extract_features
+from dataset_loader import load_data
 from train import train_and_evaluate, late_fusion_val_test
 from model import load_model
 from benchmark import benchmark_train_test
 
-from transformers import Wav2Vec2Processor
 
 def main(args):
     # Set seed for reproducibility

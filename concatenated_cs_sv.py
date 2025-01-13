@@ -2,7 +2,7 @@ import re
 import os
 import pandas as pd
 from pydub import AudioSegment
-import zipfile
+
 import argparse
 
 from tqdm import tqdm
@@ -139,7 +139,7 @@ def parse_arguments():
     # dataset parameters
     parser.add_argument("--data_path", type=str, required=True, default="./datasets", help="Path of dataset csv")
     parser.add_argument("--output_dir", type=str, default="./results", help="Output directory for model and results")
-    parser.add_argument("--save_compress", action="store_true", help="Compress the combined data and csv file in order to download them")
+    # parser.add_argument("--save_compress", action="store_true", help="Compress the combined data and csv file in order to download them")
 
     args = parser.parse_args()
     if not os.path.exists(args.data_path):
