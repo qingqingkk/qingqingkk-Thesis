@@ -198,7 +198,7 @@ def benchmark_train_test(args):
     result['seed'] = args.seed
     result['modality'] = args.modality
     out_path = os.path.join(args.output_dir, 'benchmark')
-    
+
     if not os.path.exists(out_path):
         os.makedirs(out_path)
 
@@ -207,9 +207,9 @@ def benchmark_train_test(args):
     valid_dataset = Dataset.from_pandas(valid_df)
     test_dataset = Dataset.from_pandas(test_df)
 
-    train = process_audio_dataset(train_dataset, max_duration=18)
-    valid = process_audio_dataset(valid_dataset, max_duration=18)
-    test = process_audio_dataset(test_dataset, max_duration=18)
+    train = process_audio_dataset(train_dataset, args.max_duration)
+    valid = process_audio_dataset(valid_dataset, args.max_duration)
+    test = process_audio_dataset(test_dataset, args.max_duration)
 
     # MLP
     x_train = np.array(train['padded_mfcc'])
