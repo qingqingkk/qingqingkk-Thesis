@@ -38,9 +38,11 @@ def trainer(args, train_dataset,valid_dataset, test_dataset):
             eval_dataset=valid_dataset,
             compute_metrics=compute_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience)])
-        
+    
+    print("Starting training...")    
     # Start training
     trainer.train()
+    print("Training completed! Starting testing...")
 
     # Evaluate on the test set
     test_results = trainer.evaluate(eval_dataset=test_dataset)
