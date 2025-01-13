@@ -55,9 +55,9 @@ todo
 
 ## Benchmark
 Continuously evaluate MLP(Multilayer Perceptron), 2D-CNN fine-tuning classification head, and 2D-CNN fine-tuning all layers. No separate evaluation of any of the models is set
-#### Run the code
+#### Running example of cs mode
 ```
-$python3 main.py --data_path=./datasets --output_dir=./results --strategy=benchmark
+$python3 main.py --data_path=./datasets_cs.csv --output_dir=./results --strategy=benchmark --modality=cs --max_duration=19 --seed=12 --num_classes=2 --batch_size=16 --learning_rate=0.01 --num_train_epochs=50
 ```
 
 ## Fusion model

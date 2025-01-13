@@ -8,6 +8,10 @@ from tensorflow.keras.applications import MobileNetV2
 import librosa
 
 
+
+
+
+
 def preprocess_audio_data(dataset, max_duration, n_mfcc=40, sr=16000, num_classes=2):
     """
     Preprocess the audio dataset to extract MFCC features and pad them.
@@ -87,14 +91,23 @@ def train_and_evaluate_model(model, x_train, y_train, x_valid, y_valid, x_test, 
 
 def benchmark_train_test(args, train_dataset, valid_dataset, test_dataset):
     """
-    Train and evaluate MLP and CNN models (freeze and no-freeze), and return all results.
+    Train and evaluate MLP and CNN models (freeze and no-freeze).
+
+    Results:
+        {
+        'mlp': {'val': (loss, acc, f1), 'test': (loss, acc, f1)},
+        'cnn_freeze': {'val': (loss, acc, f1), 'test': (loss, acc, f1)},
+        'cnn_no_freeze': {'val': (loss, acc, f1), 'test': (loss, acc, f1)}
+        }
     """
+
     x_train, y_train = preprocess_audio_data(train_dataset, args.max_duration, num_classes=args.num_classes)
     x_valid, y_valid = preprocess_audio_data(valid_dataset, args.max_duration, num_classes=args.num_classes)
     x_test, y_test = preprocess_audio_data(test_dataset, args.max_duration, num_classes=args.num_classes)
 
     results = {}
 
+    print('Training and evaluating MLP model......')
     # Train MLP
     save_path = os.path.join(args.output_dir, 'mlp_best_weights.weights.h5')
     mlp_model = build_model(x_train.shape[1:], args.num_classes, model_type='mlp')
@@ -106,17 +119,22 @@ def benchmark_train_test(args, train_dataset, valid_dataset, test_dataset):
     x_valid = np.repeat(np.expand_dims(x_valid, -1), 3, axis=-1)
     x_test = np.repeat(np.expand_dims(x_test, -1), 3, axis=-1)
 
+    print('Training and evaluating Freeze CNN model......')
     # CNN freeze
     save_path = os.path.join(args.output_dir, 'cnn_freeze_best_weights.weights.h5')
     cnn_freeze_model = build_model(x_train.shape[1:], args.num_classes, model_type='cnn_freeze', trainable=False)
     val_metrics, test_metrics = train_and_evaluate_model(cnn_freeze_model, x_train, y_train, x_valid, y_valid, x_test, y_test, args, save_path)
     results['cnn_freeze'] = {'val': val_metrics, 'test': test_metrics}
 
+    print('Training and evaluating No-Freeze CNN model......')
     # CNN no freeze
     save_path = os.path.join(args.output_dir, 'cnn_nofreeze_best_weights.weights.h5')
     cnn_nofreeze_model = build_model(x_train.shape[1:], args.num_classes, model_type='cnn_no_freeze', trainable=True)
     val_metrics, test_metrics = train_and_evaluate_model(cnn_nofreeze_model, x_train, y_train, x_valid, y_valid, x_test, y_test, args, save_path)
     results['cnn_no_freeze'] = {'val': val_metrics, 'test': test_metrics}
+    print('Finished!')
 
     return results
+
+
 
