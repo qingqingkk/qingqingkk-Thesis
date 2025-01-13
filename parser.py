@@ -17,18 +17,20 @@ def parse_arguments():
 
     # Model parameters
     parser.add_argument("--model_name", type=str, default="facebook/wav2vec2-base-960h", help="Pre-trained model name")
-    parser.add_argument("--strategy", type=str, choices=['early', 'mid', 'late', 'benchmark'], default=None, help="Choose the strategy of model fine-tuning, early fusion will load data from 'both' folder")
+    parser.add_argument("--strategy", type=str, choices=['early', 'mid', 'late', 'benchmark','single'], default=None, help="Choose the strategy of model fine-tuning, early fusion will load data from 'both' folder")
     parser.add_argument("--mid_type", type=str, choices=['concate', 'attention'], default=None, help="Choose the mid-fusion type")
     parser.add_argument("--late_type", type=str, choices=['average', 'moe'], default=None, help="Choose the mid-fusion type")
 
     # Training parameters
-    parser.add_argument("--learning_rate", type=float, default=2e-3, help="Learning rate")
-    parser.add_argument("--batch_size", type=int, default=4, help="Batch size for training and evaluation")
-    parser.add_argument("--num_train_epochs", type=int, default=30, help="Number of training epochs")
+    parser.add_argument("--learning_rate", type=float, default=1e-5, help="Learning rate")
+    parser.add_argument("--batch_size", type=int, default=8, help="Batch size for training and evaluation")
+    parser.add_argument("--num_train_epochs", type=int, default=50, help="Number of training epochs")
     parser.add_argument("--early_stopping_patience", type=int, default=10, help="early stopping")
     parser.add_argument("--seed", type=int, default=12, help="Random seed")
     parser.add_argument("--cp_name", type=str, default='best_model.pth', help="Check point model name")
     parser.add_argument("--cp_path", type=str, default='./results/check_points', help="Check point model path")
+
+
 
     args = parser.parse_args()
 

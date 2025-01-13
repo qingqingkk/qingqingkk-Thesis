@@ -7,16 +7,47 @@ import torch.nn.functional as F
 from tqdm import tqdm
 
 from sklearn.neural_network import MLPClassifier
-from sklearn.metrics import accuracy_score, f1_score
+
 import numpy as np
+from utils import compute_metrics, train_args, create_weighted_trainer
+from transformers import AutoModelForAudioClassification, EarlyStoppingCallback, Trainer
 
+def trainer(args, train_dataset,valid_dataset, test_dataset):
+    seed=args.SEED
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    model = AutoModelForAudioClassification.from_pretrained(args.model_name, num_labels=args.num_calsses)
 
-def compute_metrics(pred):
-    labels = pred.label_ids
-    preds = np.argmax(pred.predictions, axis=1)
-    accuracy = accuracy_score(labels, preds)
-    f1 = f1_score(labels, preds, average='macro')
-    return {"accuracy": accuracy, "f1_score": f1}
+    if args.num_calsses == 2:
+        # Define the Trainer
+        trainer = Trainer(
+            model=model,
+            args=train_args,
+            train_dataset=train_dataset,
+            eval_dataset=valid_dataset,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience)])
+        
+    else:
+        WeightedTrainer = create_weighted_trainer(model, train_dataset)
+        trainer = WeightedTrainer(
+            model=model,
+            args=train_args,
+            train_dataset=train_dataset,
+            eval_dataset=valid_dataset,
+            compute_metrics=compute_metrics,
+            callbacks=[EarlyStoppingCallback(early_stopping_patience=args.early_stopping_patience)])
+        
+    # Start training
+    trainer.train()
+
+    # Evaluate on the test set
+    test_results = trainer.evaluate(eval_dataset=test_dataset)
+    print("Test results:", test_results)
+    return test_results
+
 
 def train_and_evaluate(dataloader, model, start_time, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -188,45 +219,7 @@ def train_and_evaluate(dataloader, model, start_time, args):
 
     return result
 
-def get_probabilities_with_prefix(model, valid_loader, test_loader):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
-    
-    model.eval()
 
-    probabilities_val = {}
-    probabilities_test = {}
-    # use DataLoader
-    
-    with torch.no_grad():
-        for batch in valid_loader:
-            input_values = batch["input_values"].to(device)
-            prefixes = batch["prefix"]
-            labels = batch["labels"]
-            
-            # get logits from model，compute softmax to get probability
-            outputs = model(input_values).logits
-            probs = F.softmax(outputs, dim=-1).cpu().numpy()
-
-            # ensure prefix & label matching the probability
-            for prefix, label, prob in zip(prefixes, labels, probs):
-                key = (prefix, label.item())  # key = (prefix, label)
-                probabilities_val[key] = prob  # save probability
-
-        for batch in test_loader:
-            input_values = batch["input_values"].to(device)
-            prefixes = batch["prefix"]
-            labels = batch["labels"]
-            
-            # get logits from model，compute softmax to get probability
-            outputs = model(input_values).logits
-            probs = F.softmax(outputs, dim=-1).cpu().numpy()
-
-            # ensure prefix & label matching the probability
-            for prefix, label, prob in zip(prefixes, labels, probs):
-                key = (prefix, label.item())  # key = (prefix, label)
-                probabilities_test[key] = prob  # save probability
-    return probabilities_val, probabilities_test
 
 def late_fusion_val_test(args, models, cs, sv):
     cs_model = models[0]

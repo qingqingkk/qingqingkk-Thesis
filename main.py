@@ -29,8 +29,10 @@ def main(args):
         result = late_fusion_val_test(args, models, cs_loader, sv_loader)
     elif args.strategy == 'benchmark':
         result = benchmark_train_test(args, train_loader, valid_loader,test_loader)
-    else:
+    elif args.strategy == 'mid':
         result = train_and_evaluate([train_loader, valid_loader, test_loader], models, start_time, args)
+    else:
+        result = trainer(args, train_loader,valid_loader, test_loader)
     
     file_path = os.path.join(args.output_dir, f"{start_time}_{args.modality}_{args.strategy}_{args.da}.json")
     with open(file_path, "w", encoding="utf-8") as f:

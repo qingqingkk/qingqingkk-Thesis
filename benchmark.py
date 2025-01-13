@@ -8,10 +8,6 @@ from tensorflow.keras.applications import MobileNetV2
 import librosa
 
 
-
-
-
-
 def preprocess_audio_data(dataset, max_duration, n_mfcc=40, sr=16000, num_classes=2):
     """
     Preprocess the audio dataset to extract MFCC features and pad them.
