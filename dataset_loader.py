@@ -229,8 +229,8 @@ def load_data(args):
         test = HFDataset.from_pandas(test)
 
         return (
-            DataLoader(AudioDataset(train, processor, args.max_duration, augmentation=args.da, da_percentage=args.da_percentage), batch_size=args.batch_size, shuffle=True),
-            DataLoader(AudioDataset(valid, processor, args.max_duration), batch_size=args.batch_size),
-            DataLoader(AudioDataset(test, processor, args.max_duration), batch_size=args.batch_size)
+            AudioDataset(train, processor, args.max_duration, augmentation=args.da, da_percentage=args.da_percentage),
+            AudioDataset(valid, processor, args.max_duration),
+            AudioDataset(test, processor, args.max_duration)
         )
 
