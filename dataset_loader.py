@@ -184,20 +184,18 @@ def load_data(args):
     if args.strategy == 'mid':
         (cs_train, cs_valid, cs_test), (sv_train, sv_valid, sv_test) = load_csv(args)
 
-        cs_train = HFDataset.from_pandas(cs_train)
-        cs_valid = HFDataset.from_pandas(cs_valid)
-        cs_test = HFDataset.from_pandas(cs_test)
+        # Convert DataFrames to Hugging Face Datasets and create MidFusionAudioDataset
+        cs_train = MidFusionAudioDataset(HFDataset.from_pandas(cs_train), HFDataset.from_pandas(sv_train), processor, args.max_duration, augmentation=args.da, da_percentage=args.da_percentage)
+        cs_valid = MidFusionAudioDataset(HFDataset.from_pandas(cs_valid), HFDataset.from_pandas(sv_valid), processor, args.max_duration)
+        cs_test = MidFusionAudioDataset(HFDataset.from_pandas(cs_test), HFDataset.from_pandas(sv_test), processor, args.max_duration)
 
-        sv_train = HFDataset.from_pandas(sv_train)
-        sv_valid = HFDataset.from_pandas(sv_valid)
-        sv_test = HFDataset.from_pandas(sv_test)
-
-
+        # Create DataLoaders
         return (
-            MidFusionAudioDataset(cs_train, sv_train, processor, args.max_duration, augmentation=args.da, da_percentage=args.da_percentage),
-            MidFusionAudioDataset(cs_valid, sv_valid, processor, args.max_duration),
-            MidFusionAudioDataset(cs_test, sv_test, processor, args.max_duration)
+            DataLoader(cs_train, batch_size=args.batch_size, shuffle=True),
+            DataLoader(cs_valid, batch_size=args.batch_size, shuffle=False),
+            DataLoader(cs_test, batch_size=args.batch_size, shuffle=False)
         )
+
     
     elif args.strategy == 'late':
         [cs_train, cs_valid, cs_test], [sv_train, sv_valid, sv_test] = load_csv(args)
