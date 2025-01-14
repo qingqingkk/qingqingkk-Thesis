@@ -112,7 +112,10 @@ class MidFusionAudioDataset(Dataset):
             padding='max_length'
         )
 
-        return (cs_inputs,sv_inputs),self.labels[idx]
+        return (
+            {'input_values': cs_inputs['input_values'].squeeze(0)},
+            {'input_values': sv_inputs['input_values'].squeeze(0)}
+            ), self.labels[idx]
 
     @staticmethod
     def apply_augmentation(audio):
