@@ -63,7 +63,48 @@ def compute_metrics(pred):
 
 
 
-def get_probabilities_with_prefix(model, valid_loader, test_loader):
+# def get_probabilities_with_prefix(model, valid_loader, test_loader):
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     model = model.to(device)
+    
+#     model.eval()
+
+#     probabilities_val = {}
+#     probabilities_test = {}
+#     # use DataLoader
+    
+#     with torch.no_grad():
+#         for batch in valid_loader:
+#             input_values = batch["input_values"].to(device)
+#             prefixes = batch["prefix"]
+#             labels = batch["labels"]
+            
+#             # get logits from model，compute softmax to get probability
+#             outputs = model(input_values).logits
+#             probs = F.softmax(outputs, dim=-1).cpu().numpy()
+
+#             # ensure prefix & label matching the probability
+#             for prefix, label, prob in zip(prefixes, labels, probs):
+#                 key = (prefix, label.item())  # key = (prefix, label)
+#                 probabilities_val[key] = prob  # save probability
+
+#         for batch in test_loader:
+#             input_values = batch["input_values"].to(device)
+#             prefixes = batch["prefix"]
+#             labels = batch["labels"]
+            
+#             # get logits from model，compute softmax to get probability
+#             outputs = model(input_values).logits
+#             probs = F.softmax(outputs, dim=-1).cpu().numpy()
+
+#             # ensure prefix & label matching the probability
+#             for prefix, label, prob in zip(prefixes, labels, probs):
+#                 key = (prefix, label.item())  # key = (prefix, label)
+#                 probabilities_test[key] = prob  # save probability
+
+#     return probabilities_val, probabilities_test
+
+def get_probabilities(model, valid_loader, test_loader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
     
@@ -71,35 +112,34 @@ def get_probabilities_with_prefix(model, valid_loader, test_loader):
 
     probabilities_val = {}
     probabilities_test = {}
-    # use DataLoader
     
     with torch.no_grad():
-        for batch in valid_loader:
+        # Process validation data
+        for batch_idx, batch in enumerate(valid_loader):
             input_values = batch["input_values"].to(device)
-            prefixes = batch["prefix"]
             labels = batch["labels"]
             
-            # get logits from model，compute softmax to get probability
+            # Get logits from the model, compute probabilities
             outputs = model(input_values).logits
             probs = F.softmax(outputs, dim=-1).cpu().numpy()
 
-            # ensure prefix & label matching the probability
-            for prefix, label, prob in zip(prefixes, labels, probs):
-                key = (prefix, label.item())  # key = (prefix, label)
-                probabilities_val[key] = prob  # save probability
+            # Use (batch_idx, label) as the key to ensure alignment
+            for i, (label, prob) in enumerate(zip(labels, probs)):
+                key = (batch_idx, i, label.item())  # Key includes batch index and sample index
+                probabilities_val[key] = prob
 
-        for batch in test_loader:
+        # Process test data
+        for batch_idx, batch in enumerate(test_loader):
             input_values = batch["input_values"].to(device)
-            prefixes = batch["prefix"]
             labels = batch["labels"]
             
-            # get logits from model，compute softmax to get probability
+            # Get logits from the model, compute probabilities
             outputs = model(input_values).logits
             probs = F.softmax(outputs, dim=-1).cpu().numpy()
 
-            # ensure prefix & label matching the probability
-            for prefix, label, prob in zip(prefixes, labels, probs):
-                key = (prefix, label.item())  # key = (prefix, label)
-                probabilities_test[key] = prob  # save probability
+            # Use (batch_idx, label) as the key to ensure alignment
+            for i, (label, prob) in enumerate(zip(labels, probs)):
+                key = (batch_idx, i, label.item())
+                probabilities_test[key] = prob
                 
     return probabilities_val, probabilities_test
