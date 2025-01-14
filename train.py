@@ -147,61 +147,72 @@ def late_fusion_val_test(args, models, cs, sv):
     cs_val_p, cs_test_p = get_probabilities(cs_model, cs[0], cs[1])
     sv_val_p, sv_test_p = get_probabilities(sv_model, sv[0], sv[1])
 
-    true_labels = []
-    fused_probs = []
     result = {}
+
+    # Helper function to evaluate classification
+    def evaluate_classification(true_labels, predicted_probs):
+        # Convert probabilities to predicted labels
+        if args.num_classes > 2:
+            predicted_labels = np.argmax(predicted_probs, axis=-1)
+        else:
+            predicted_labels = (predicted_probs > 0.5).astype(int)
+
+        # Convert true labels to indices if one-hot encoded
+        if args.num_classes > 2:
+            true_labels = np.argmax(true_labels, axis=-1)
+
+        # Verify matching shapes
+        assert true_labels.shape == predicted_labels.shape, "Shapes do not match!"
+
+        # Compute metrics
+        accuracy = accuracy_score(true_labels, predicted_labels)
+        f1 = f1_score(true_labels, predicted_labels, average='weighted')
+
+        print(f"Accuracy: {accuracy:.4f}, F1 Score: {f1:.4f}")
+        return accuracy, f1
+
     if args.late_type == 'average':
-        # valid loop
+        # Validation loop
+        true_labels = []
+        fused_probs = []
         for cs_label, cs_probs in cs_val_p.items():
             if cs_label in sv_val_p:
                 sv_probs = sv_val_p[cs_label]
 
-                # compute the average of probabilities
+                # Compute the average of probabilities
                 fused_prob = (cs_probs + sv_probs) / 2.0
                 fused_probs.append(fused_prob)
 
-                # add the true labels
+                # Add the true labels
                 true_labels.append(cs_label)
 
-        # Convert them to tensors for batch computation
-        fused_probs = torch.tensor(fused_probs)
-        predicted_labels = torch.argmax(fused_probs, dim=-1).numpy()
-
-        # Convert to NumPy
+        # Evaluate validation
         true_labels = np.array(true_labels)
+        fused_probs = np.array(fused_probs)
+        val_accuracy, val_f1 = evaluate_classification(true_labels, fused_probs)
+        result['val_acc'] = val_accuracy
+        result['val_f1'] = val_f1
 
-        # evaluate
-        accuracy = accuracy_score(true_labels, predicted_labels)
-        f1 = f1_score(true_labels, predicted_labels, average='weighted')
-        result['val_acc'] = accuracy
-        result['val_f1'] = f1
-        print(f'late type: {args.late_type}, validation, acc: {accuracy}, f1: {f1}')
-
-        # test loop
+        # Test loop
+        true_labels = []
+        fused_probs = []
         for cs_label, cs_probs in cs_test_p.items():
             if cs_label in sv_test_p:
                 sv_probs = sv_test_p[cs_label]
 
-                # compute the average of probabilities
+                # Compute the average of probabilities
                 fused_prob = (cs_probs + sv_probs) / 2.0
                 fused_probs.append(fused_prob)
 
-                # add the true labels
+                # Add the true labels
                 true_labels.append(cs_label)
 
-        # Convert them to tensors for batch computation
-        fused_probs = torch.tensor(fused_probs)
-        predicted_labels = torch.argmax(fused_probs, dim=-1).numpy()
-
-        # Convert to NumPy
+        # Evaluate test
         true_labels = np.array(true_labels)
-
-        # evaluate
-        accuracy = accuracy_score(true_labels, predicted_labels)
-        f1 = f1_score(true_labels, predicted_labels, average='weighted')
-        result['test_acc'] = accuracy
-        result['test_f1'] = f1
-        print(f'late type: {args.late_type}, test, acc: {accuracy}, f1: {f1}')
+        fused_probs = np.array(fused_probs)
+        test_accuracy, test_f1 = evaluate_classification(true_labels, fused_probs)
+        result['test_acc'] = test_accuracy
+        result['test_f1'] = test_f1
 
     elif args.late_type == 'moe':
         X_train = []
@@ -262,26 +273,17 @@ def late_fusion_val_test(args, models, cs, sv):
             X_fused = np.array(X_fused)
             y_fused = np.array(y_fused)
 
-            # fused predictions
-            predictions = np.argmax(X_fused, axis=1)
-
-            accuracy = accuracy_score(y_fused, predictions)
-            f1 = f1_score(y_fused, predictions, average='weighted')
-
-            return accuracy, f1
+            # Evaluate classification
+            return evaluate_classification(y_fused, X_fused)
 
         # Evaluate the validation set ensemble
         valid_accuracy, valid_f1 = _evaluate_fusion(cs_val_p, sv_val_p, gating_network)
         result['val_acc'] = valid_accuracy
         result['val_f1'] = valid_f1
-        print(f"Fused Valid Accuracy: {valid_accuracy}")
-        print(f"Fused Valid F1 Score: {valid_f1}")
 
         # Evaluate the Test set ensemble
         test_accuracy, test_f1 = _evaluate_fusion(cs_test_p, sv_test_p, gating_network)
         result['test_acc'] = test_accuracy
         result['test_f1'] = test_f1
-        print(f"Fused Test Accuracy: {test_accuracy}")
-        print(f"Fused Test F1 Score: {test_f1}")
 
-        return result
+    return result
