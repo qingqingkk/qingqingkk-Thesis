@@ -158,8 +158,8 @@ def late_fusion_val_test(args, models, cs, sv):
             predicted_labels = (predicted_probs > 0.5).astype(int)
 
         # Ensure true_labels is consistent
-        if args.num_classes > 2 and true_labels.ndim > 1:
-            true_labels = np.argmax(true_labels, axis=-1)
+        if args.num_classes > 2:
+            true_labels = np.array(true_labels)
 
         # Verify matching shapes
         assert true_labels.shape == predicted_labels.shape, "Shapes do not match!"
