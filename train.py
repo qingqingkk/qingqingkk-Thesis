@@ -8,7 +8,7 @@ from tqdm import tqdm
 import random
 from sklearn.neural_network import MLPClassifier
 import numpy as np
-from utils import compute_metrics, training_args, create_weighted_trainer
+from utils import compute_metrics, training_args, create_weighted_trainer, get_probabilities_with_prefix
 from transformers import AutoModelForAudioClassification, EarlyStoppingCallback, Trainer
 
 def trainer(args, train_dataset,valid_dataset, test_dataset):
@@ -114,7 +114,7 @@ def train_Midfusion_model(train_loader, valid_loader, test_loader, fusion_model,
 
         if valid_accuracy > best_valid_accuracy:
             best_valid_accuracy = valid_accuracy
-            save_path = os.path.join(args.cp_path, f"epoch_{epoch + 1}.pth")
+            save_path = os.path.join(args.cp_path, 'best.pth')
             torch.save(fusion_model.state_dict(), save_path)
             print(f"Model saved at {save_path} with improved accuracy.")
             patience_counter = 0
