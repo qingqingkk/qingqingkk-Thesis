@@ -117,7 +117,7 @@ def get_probabilities(model, valid_loader, test_loader):
         # Process validation data
         for batch_idx, batch in enumerate(valid_loader):
             input_values = batch["input_values"].to(device)
-            labels = batch["labels"]
+            labels = batch["label"]
             
             # Get logits from the model, compute probabilities
             outputs = model(input_values).logits
@@ -131,7 +131,7 @@ def get_probabilities(model, valid_loader, test_loader):
         # Process test data
         for batch_idx, batch in enumerate(test_loader):
             input_values = batch["input_values"].to(device)
-            labels = batch["labels"]
+            labels = batch["label"]
             
             # Get logits from the model, compute probabilities
             outputs = model(input_values).logits
