@@ -141,33 +141,48 @@ class MidFusionAudioDataset(Dataset):
 
 # load dataset and split into train, valid, test dataframe
 def load_csv(args):
-    def read_csv(path, name):
-        csv_path = os.path.join(path, name)
-        if not os.path.exists(csv_path):
-            raise FileNotFoundError(f"'{csv_path}' not found. Please verify or preprocess the data.")
-        return pd.read_csv(csv_path)
-
-    data_path = args.data_path
     SEED = args.seed
 
-    if args.strategy == 'early' or 'benchmark' or 'single':
-        df = pd.read_csv(data_path)
+    def find_csv(dataset_path, csv_name):
+        """Find a specific CSV file in the dataset_path."""
+        csv_path = os.path.join(dataset_path, csv_name)
+        if not os.path.isfile(csv_path):
+            raise FileNotFoundError(f"'{csv_name}' not found in '{dataset_path}'. Please check the structure.")
+        return csv_path
+
+    # single modality load csv file
+    if args.strategy in ['early', 'benchmark', 'single']:
+        if not args.data_path.endswith('.csv') or not os.path.isfile(args.data_path):
+            raise ValueError(f"Expected a CSV file path for single modality, but got: {args.data_path}")
+        df = pd.read_csv(args.data_path)
         train_valid, test = train_test_split(df, test_size=0.1, stratify=df['label'], random_state=20)
         train, valid = train_test_split(train_valid, test_size=0.1111, stratify=train_valid['label'], random_state=SEED)
         return train, valid, test
 
+    # multi-modality load folder contains 2 csv files
+    elif args.strategy == 'mid':
+        if not os.path.isdir(args.data_path):
+            raise ValueError(f"Expected a folder path for multi-modality, but got: {args.data_path}")
 
-    cs_df = read_csv(data_path, 'cs_dataset.csv')
-    sv_df = read_csv(data_path, 'sv_dataset.csv')
+        # find csv
+        cs_path = find_csv(args.data_path, 'cs_dataset.csv')
+        sv_path = find_csv(args.data_path, 'sv_dataset.csv')
 
-    cs_train_valid, cs_test = train_test_split(cs_df, test_size=0.1, stratify=cs_df['label'], random_state=20)
-    cs_train, cs_valid = train_test_split(cs_train_valid, test_size=0.1111, stratify=cs_train_valid['label'], random_state=SEED)
+        # load
+        cs_df = pd.read_csv(cs_path)
+        sv_df = pd.read_csv(sv_path)
 
-    sv_train_valid, sv_test = train_test_split(sv_df, test_size=0.1, stratify=sv_df['label'], random_state=20)
-    sv_train, sv_valid = train_test_split(sv_train_valid, test_size=0.1111, stratify=sv_train_valid['label'], random_state=SEED)
+        # split
+        cs_train_valid, cs_test = train_test_split(cs_df, test_size=0.1, stratify=cs_df['label'], random_state=20)
+        cs_train, cs_valid = train_test_split(cs_train_valid, test_size=0.1111, stratify=cs_train_valid['label'], random_state=SEED)
 
-    return [cs_valid, cs_test], [sv_valid, sv_test]
+        sv_train_valid, sv_test = train_test_split(sv_df, test_size=0.1, stratify=sv_df['label'], random_state=20)
+        sv_train, sv_valid = train_test_split(sv_train_valid, test_size=0.1111, stratify=sv_train_valid['label'], random_state=SEED)
 
+        return (cs_train, cs_valid, cs_test), (sv_train, sv_valid, sv_test)
+
+    else:
+        raise ValueError(f"Unsupported strategy: {args.strategy}")
 
 # Load the separated df and use the predefined Processor for processing and feature extraction
 def load_data(args):
@@ -192,7 +207,7 @@ def load_data(args):
         )
     
     elif args.strategy == 'late':
-        [cs_valid, cs_test], [sv_valid, sv_test] = load_csv(args)
+        [cs_train, cs_valid, cs_test], [sv_train, sv_valid, sv_test] = load_csv(args)
 
         cs_valid = HFDataset.from_pandas(cs_valid)
         cs_test = HFDataset.from_pandas(cs_test)
