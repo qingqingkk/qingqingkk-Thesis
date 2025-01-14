@@ -112,8 +112,8 @@ class MidFusionAudioDataset(Dataset):
         )
 
         return (
-            {'input_values': cs_inputs['input_values'].squeeze(0)},
-            {'input_values': sv_inputs['input_values'].squeeze(0)}
+            {'input_values': cs_inputs['input_values']},
+            {'input_values': sv_inputs['input_values']}
             ), torch.tensor(self.labels[idx])
 
     @staticmethod
