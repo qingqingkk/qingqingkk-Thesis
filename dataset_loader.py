@@ -24,6 +24,7 @@ class AudioDataset(Dataset):
     def __init__(self, examples, feature_extractor, max_duration, sr=16000, augmentation=False, da_percentage=0):
         self.audio_paths = examples['path']
         self.labels = examples['label']
+        self.prefix = examples['prefix']
         self.feature_extractor = feature_extractor
         self.max_duration = max_duration
         self.sr = sr
