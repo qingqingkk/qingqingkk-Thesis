@@ -33,7 +33,7 @@ def main(args):
         result = train_Midfusion_model([train_loader, valid_loader, test_loader], models, args)
     else:
         result = trainer(args, train_loader, valid_loader, test_loader)
-    
+
     file_path = os.path.join(args.output_dir, f"{start_time}_{args.modality}_{args.strategy}_{args.da}.json")
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=4) 

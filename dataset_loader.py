@@ -160,7 +160,7 @@ def load_csv(args):
         return train, valid, test
 
     # multi-modality load folder contains 2 csv files
-    elif args.strategy == 'mid':
+    elif args.strategy in ['mid', 'late']:
         if not os.path.isdir(args.data_path):
             raise ValueError(f"Expected a folder path for multi-modality, but got: {args.data_path}")
 

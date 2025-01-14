@@ -100,6 +100,7 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
 
 
 def load_model(args):
+    
     if args.strategy == 'late':
         model1 = AutoModelForAudioClassification.from_pretrained(args.cp_path1, num_labels=args.num_classes)
         model2 = AutoModelForAudioClassification.from_pretrained(args.cp_path2, num_labels=args.num_classes)
