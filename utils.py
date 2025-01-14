@@ -77,7 +77,7 @@ def get_probabilities_with_prefix(model, valid_loader, test_loader):
         for batch in valid_loader:
             input_values = batch["input_values"].to(device)
             prefixes = batch["prefix"]
-            labels = batch["labels"]
+            labels = batch["label"]
             
             # get logits from model，compute softmax to get probability
             outputs = model(input_values).logits
@@ -91,7 +91,7 @@ def get_probabilities_with_prefix(model, valid_loader, test_loader):
         for batch in test_loader:
             input_values = batch["input_values"].to(device)
             prefixes = batch["prefix"]
-            labels = batch["labels"]
+            labels = batch["label"]
             
             # get logits from model，compute softmax to get probability
             outputs = model(input_values).logits
