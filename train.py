@@ -157,8 +157,8 @@ def late_fusion_val_test(args, models, cs, sv):
         else:
             predicted_labels = (predicted_probs > 0.5).astype(int)
 
-        # Convert true labels to indices if one-hot encoded
-        if args.num_classes > 2:
+        # Ensure true_labels is consistent
+        if args.num_classes > 2 and true_labels.ndim > 1:
             true_labels = np.argmax(true_labels, axis=-1)
 
         # Verify matching shapes
@@ -166,7 +166,7 @@ def late_fusion_val_test(args, models, cs, sv):
 
         # Compute metrics
         accuracy = accuracy_score(true_labels, predicted_labels)
-        f1 = f1_score(true_labels, predicted_labels, average='weighted')
+        f1 = f1_score(true_labels, predicted_labels, average='macro')
 
         print(f"Accuracy: {accuracy:.4f}, F1 Score: {f1:.4f}")
         return accuracy, f1
