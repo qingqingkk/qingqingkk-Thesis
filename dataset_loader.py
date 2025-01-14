@@ -114,9 +114,7 @@ class MidFusionAudioDataset(Dataset):
 
         return {
             'cs_input_values': cs_inputs['input_values'].squeeze(0),
-            'cs_attention_mask': cs_inputs['attention_mask'].squeeze(0),
             'sv_input_values': sv_inputs['input_values'].squeeze(0),
-            'sv_attention_mask': sv_inputs['attention_mask'].squeeze(0),
             'label': torch.tensor(self.labels[idx], dtype=torch.long)
         }
 
