@@ -8,7 +8,7 @@ from tqdm import tqdm
 import random
 from sklearn.neural_network import MLPClassifier
 import numpy as np
-from utils import compute_metrics, training_args, create_weighted_trainer, get_probabilities_with_prefix
+from utils import compute_metrics, training_args, create_weighted_trainer, get_probabilities
 from transformers import AutoModelForAudioClassification, EarlyStoppingCallback, Trainer
 
 def trainer(args, train_dataset,valid_dataset, test_dataset):
@@ -144,8 +144,8 @@ def late_fusion_val_test(args, models, cs, sv):
     cs_model = models[0]
     sv_model = models[1]
     # get prob
-    cs_val_p, cs_test_p = get_probabilities_with_prefix(cs_model, cs[0], cs[1])
-    sv_val_p, sv_test_p = get_probabilities_with_prefix(sv_model, sv[0], sv[1])
+    cs_val_p, cs_test_p = get_probabilities(cs_model, cs[0], cs[1])
+    sv_val_p, sv_test_p = get_probabilities(sv_model, sv[0], sv[1])
 
     true_labels = []
     fused_probs = []
