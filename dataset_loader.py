@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from transformers import Wav2Vec2Processor
 from datasets import Dataset as HFDataset  
-
+import tensor
 
 """
 Modules:
@@ -115,7 +115,7 @@ class MidFusionAudioDataset(Dataset):
         return (
             {'input_values': cs_inputs['input_values'].squeeze(0)},
             {'input_values': sv_inputs['input_values'].squeeze(0)}
-            ), self.labels[idx]
+            ), tensor(self.labels[idx])
 
     @staticmethod
     def apply_augmentation(audio):
