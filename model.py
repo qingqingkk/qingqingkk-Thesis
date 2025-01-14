@@ -78,7 +78,7 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
             fused_features = torch.cat((attn_output1, attn_output2), dim=-1)  # [batch_size, seq_len, hidden_size * 2]
              
 
-        elif self.fusion_method == 'concat':
+        elif self.fusion_method == 'concate':
             # Concatenate
             fused_features = torch.cat((projected_hidden_states_cs, projected_hidden_states_sv), dim=-1)
             
@@ -108,8 +108,8 @@ def load_model(args):
         return [model1, model2]
         
     elif args.strategy == 'mid':
-        model1 = Wav2Vec2Model.from_pretrained(args.cp_path1, num_labels=args.num_classes)
-        model2 = Wav2Vec2Model.from_pretrained(args.cp_path2, num_labels=args.num_classes)
+        model1 = Wav2Vec2Model.from_pretrained(args.cp_path1)
+        model2 = Wav2Vec2Model.from_pretrained(args.cp_path2)
         
         model = Wav2Vec2SharedTransformerModel(model1, model2, fusion_method=args.mid_type, num_classes=args.num_classes)
     else:
