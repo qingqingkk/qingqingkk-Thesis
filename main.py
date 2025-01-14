@@ -30,7 +30,7 @@ def main(args):
     elif args.strategy == 'benchmark':
         result = benchmark_train_test(args, train_loader, valid_loader,test_loader)
     elif args.strategy == 'mid':
-        result = train_Midfusion_model([train_loader, valid_loader, test_loader], models, args)
+        result = train_Midfusion_model(train_loader, valid_loader, test_loader, models, args)
     else:
         result = trainer(args, train_loader, valid_loader, test_loader)
 
