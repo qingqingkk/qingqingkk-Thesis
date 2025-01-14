@@ -50,7 +50,7 @@ def trainer(args, train_dataset,valid_dataset, test_dataset):
     return test_results
 
 
-def train_fusion_model(train_loader, valid_loader, test_loader, fusion_model, args):
+def train_Midfusion_model(train_loader, valid_loader, test_loader, fusion_model, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     fusion_model.to(device)
