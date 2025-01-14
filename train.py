@@ -144,8 +144,8 @@ def late_fusion_val_test(args, models, cs, sv):
     cs_model = models[0]
     sv_model = models[1]
     # get prob
-    cs_val_p, cs_test_p = get_probabilities_with_prefix(cs_model, cs[1], cs[2])
-    sv_val_p, sv_test_p = get_probabilities_with_prefix(sv_model, sv[1], sv[2])
+    cs_val_p, cs_test_p = get_probabilities_with_prefix(cs_model, cs[0], cs[1])
+    sv_val_p, sv_test_p = get_probabilities_with_prefix(sv_model, sv[0], sv[1])
 
     true_labels = []
     fused_probs = []
