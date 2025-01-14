@@ -151,16 +151,15 @@ def late_fusion_val_test(args, models, cs, sv):
     fused_probs = []
     result = {}
     if args.late_type == 'average':
-        #valid loop
-        for (cs_prefix, cs_label), cs_probs in cs_val_p.items():
-            sv_key = (cs_prefix, cs_label)
-            if sv_key in sv_val_p:
-                sv_probs = sv_val_p[sv_key]
-                
+        # valid loop
+        for cs_label, cs_probs in cs_val_p.items():
+            if cs_label in sv_val_p:
+                sv_probs = sv_val_p[cs_label]
+
                 # compute the average of probabilities
                 fused_prob = (cs_probs + sv_probs) / 2.0
                 fused_probs.append(fused_prob)
-                
+
                 # add the true labels
                 true_labels.append(cs_label)
 
@@ -177,16 +176,16 @@ def late_fusion_val_test(args, models, cs, sv):
         result['val_acc'] = accuracy
         result['val_f1'] = f1
         print(f'late type: {args.late_type}, validation, acc: {accuracy}, f1: {f1}')
-        #test loop
-        for (cs_prefix, cs_label), cs_probs in cs_test_p.items():
-            sv_key = (cs_prefix, cs_label)
-            if sv_key in sv_test_p:
-                sv_probs = sv_test_p[sv_key]
-                
+
+        # test loop
+        for cs_label, cs_probs in cs_test_p.items():
+            if cs_label in sv_test_p:
+                sv_probs = sv_test_p[cs_label]
+
                 # compute the average of probabilities
                 fused_prob = (cs_probs + sv_probs) / 2.0
                 fused_probs.append(fused_prob)
-                
+
                 # add the true labels
                 true_labels.append(cs_label)
 
@@ -205,94 +204,73 @@ def late_fusion_val_test(args, models, cs, sv):
         print(f'late type: {args.late_type}, test, acc: {accuracy}, f1: {f1}')
 
     elif args.late_type == 'moe':
-        '''
-        Train gating networks
-
-        Parameters:
-        - cs_valid_prob: dict, model 1, {'(prefix, label)',prob}
-        - sv_valid_prob: ...
-        - cs_test_prob: ...
-        - sv_test_prob: ...
-        - num_classes: int
-
-        Return:
-        - valid_accuracy: Fusion accuracy of the validation set
-        - valid_f1: Fusion F1 ..
-        - test_accuracy: Fusion accuracy of the test set
-        - test_f1: Fusion accuracy ..
-        '''
         X_train = []
         y_train = []
-        
+
         # Construct validation set features and labels
-        for key, cs_prob in cs_val_p.items():
-            prefix, label = key
-            sv_prob = sv_val_p.get(key, None)
-            
+        for label, cs_prob in cs_val_p.items():
+            sv_prob = sv_val_p.get(label, None)
+
             if sv_prob is not None:
                 # Concatenate the probabilities of the two models as features
                 combined_prob = np.concatenate((cs_prob, sv_prob))
-                
+
                 X_train.append(combined_prob)
                 y_train.append(label)
-        
+
         # Convert to NumPy
         X_train = np.array(X_train)
         y_train = np.array(y_train)
-
 
         # Training the Gating Network
         gating_network = MLPClassifier(
             hidden_layer_sizes=(10,), max_iter=1000, random_state=42, learning_rate_init=0.001
         )
-        
+
         gating_network.fit(X_train, y_train)
-        
+
         # Define the internal evaluation function
         def _evaluate_fusion(cs_prob_dict, sv_prob_dict, gating_network):
             X_fused = []
             y_fused = []
-            
-            for key, cs_prob in cs_prob_dict.items():
-                prefix, label = key
-                sv_prob = sv_prob_dict.get(key, None)
-                
+
+            for label, cs_prob in cs_prob_dict.items():
+                sv_prob = sv_prob_dict.get(label, None)
+
                 if sv_prob is not None:
                     # Concatenate the probabilities of the two models as features
                     combined_prob = np.concatenate((cs_prob, sv_prob))
-                    
+
                     # Get the probabilities of the pre-trained gating network
                     gating_probs = gating_network.predict_proba(combined_prob.reshape(1, -1))[0]
-                    
+
                     # Converting class probabilities into model weights
                     cs_weight = np.sum(gating_probs[:args.num_classes])  # first num_classes categories are the weights of cs_prob
                     sv_weight = np.sum(gating_probs[args.num_classes:])  # last are the weights of sv_prob
-                    
+
                     # Normalize the weights
                     total_weight = cs_weight + sv_weight
                     cs_weight /= total_weight
                     sv_weight /= total_weight
-                    
+
                     # Weighted sum of the probabilities of the two models
                     final_prob = cs_weight * cs_prob + sv_weight * sv_prob
-                    
+
                     X_fused.append(final_prob)
                     y_fused.append(label)
-            
+
             X_fused = np.array(X_fused)
             y_fused = np.array(y_fused)
-            
+
             # fused predictions
             predictions = np.argmax(X_fused, axis=1)
-            
-            #
+
             accuracy = accuracy_score(y_fused, predictions)
             f1 = f1_score(y_fused, predictions, average='weighted')
-            
+
             return accuracy, f1
 
-
-        # Evaluate the validation set ensemblen
+        # Evaluate the validation set ensemble
         valid_accuracy, valid_f1 = _evaluate_fusion(cs_val_p, sv_val_p, gating_network)
         result['val_acc'] = valid_accuracy
         result['val_f1'] = valid_f1
@@ -305,5 +283,5 @@ def late_fusion_val_test(args, models, cs, sv):
         result['test_f1'] = test_f1
         print(f"Fused Test Accuracy: {test_accuracy}")
         print(f"Fused Test F1 Score: {test_f1}")
-        
+
         return result
