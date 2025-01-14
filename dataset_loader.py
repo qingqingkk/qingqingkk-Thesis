@@ -112,11 +112,7 @@ class MidFusionAudioDataset(Dataset):
             padding='max_length'
         )
 
-        return {
-            'cs_input_values': cs_inputs['input_values'].squeeze(0),
-            'sv_input_values': sv_inputs['input_values'].squeeze(0),
-            'label': torch.tensor(self.labels[idx], dtype=torch.long)
-        }
+        return (cs_inputs,sv_inputs),self.labels[idx]
 
     @staticmethod
     def apply_augmentation(audio):
