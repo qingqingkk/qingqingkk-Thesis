@@ -7,7 +7,7 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
     def __init__(self, model_cs, 
                  model_sv,
                  shared_transformer_model="facebook/wav2vec2-base-960h",  # General Pre-trained Models
-                 fusion_method='concat', hidden_size=768, num_classes=2):
+                 fusion_method='concate', hidden_size=768, num_classes=2):
         super(Wav2Vec2SharedTransformerModel, self).__init__()
         self.model_cs = model_cs
         self.model_sv = model_sv
@@ -24,7 +24,7 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
         if self.fusion_method == 'attention':     
             self.atten_layer = nn.MultiheadAttention(embed_dim=hidden_size, num_heads=4)
             
-        elif self.fusion_method == 'concat':
+        elif self.fusion_method == 'concate':
             
             pass
         self.post_norm = nn.LayerNorm(hidden_size * 2)
