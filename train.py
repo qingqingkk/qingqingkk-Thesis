@@ -162,11 +162,42 @@ def late_fusion_val_test(args, models, cs, sv):
             true_labels = np.array(true_labels)
 
         # Verify matching shapes
-        assert true_labels.shape == predicted_labels.shape, "Shapes do not match!"
+        assert len(true_labels) == len(predicted_labels) "Shapes do not match!"
 
         # Compute metrics
         accuracy = accuracy_score(true_labels, predicted_labels)
         f1 = f1_score(true_labels, predicted_labels, average='macro')
+
+        print(f"Accuracy: {accuracy:.4f}, F1 Score: {f1:.4f}")
+        return accuracy, f1
+
+    def late_fusion_val_test(args, models, cs, sv):
+    cs_model = models[0]
+    sv_model = models[1]
+    # get prob
+    cs_val_p, cs_test_p = get_probabilities(cs_model, cs[0], cs[1])
+    sv_val_p, sv_test_p = get_probabilities(sv_model, sv[0], sv[1])
+
+    result = {}
+
+    # Helper function to evaluate classification
+    def evaluate_classification(true_labels, predicted_probs):
+        # Convert probabilities to predicted labels
+        if args.num_classes > 2:
+            predicted_labels = np.argmax(predicted_probs, axis=-1)
+        else:
+            predicted_labels = (predicted_probs > 0.5).astype(int)
+
+        # Ensure true_labels is consistent
+        if args.num_classes > 2:
+            true_labels = np.array(true_labels)
+
+        # Verify matching shapes
+        assert len(true_labels) == len(predicted_labels), "Shapes do not match!"
+
+        # Compute metrics
+        accuracy = accuracy_score(true_labels, predicted_labels)
+        f1 = f1_score(true_labels, predicted_labels, average='weighted')
 
         print(f"Accuracy: {accuracy:.4f}, F1 Score: {f1:.4f}")
         return accuracy, f1
@@ -184,9 +215,12 @@ def late_fusion_val_test(args, models, cs, sv):
                 fused_probs.append(fused_prob)
 
                 # Add the true labels
-                true_labels.append(cs_label)
+                true_labels.append(cs_label[1])
 
-        # Evaluate validation
+        # Debugging: print shapes
+        print(f"Validation - True Labels: {len(true_labels)}, Fused Probs: {len(fused_probs)}")
+
+        # Ensure correct shapes
         true_labels = np.array(true_labels)
         fused_probs = np.array(fused_probs)
         val_accuracy, val_f1 = evaluate_classification(true_labels, fused_probs)
@@ -205,9 +239,12 @@ def late_fusion_val_test(args, models, cs, sv):
                 fused_probs.append(fused_prob)
 
                 # Add the true labels
-                true_labels.append(cs_label)
+                true_labels.append(cs_label[1])
 
-        # Evaluate test
+        # Debugging: print shapes
+        print(f"Test - True Labels: {len(true_labels)}, Fused Probs: {len(fused_probs)}")
+
+        # Ensure correct shapes
         true_labels = np.array(true_labels)
         fused_probs = np.array(fused_probs)
         test_accuracy, test_f1 = evaluate_classification(true_labels, fused_probs)
@@ -227,7 +264,7 @@ def late_fusion_val_test(args, models, cs, sv):
                 combined_prob = np.concatenate((cs_prob, sv_prob))
 
                 X_train.append(combined_prob)
-                y_train.append(label)
+                y_train.append(label[1])
 
         # Convert to NumPy
         X_train = np.array(X_train)
@@ -268,7 +305,7 @@ def late_fusion_val_test(args, models, cs, sv):
                     final_prob = cs_weight * cs_prob + sv_weight * sv_prob
 
                     X_fused.append(final_prob)
-                    y_fused.append(label)
+                    y_fused.append(label[1])
 
             X_fused = np.array(X_fused)
             y_fused = np.array(y_fused)
