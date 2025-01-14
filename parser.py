@@ -28,7 +28,8 @@ def parse_arguments():
     parser.add_argument("--early_stopping_patience", type=int, default=10, help="early stopping")
     parser.add_argument("--seed", type=int, default=12, help="Random seed")
     parser.add_argument("--cp_name", type=str, default='best_model.pth', help="Check point model name")
-    parser.add_argument("--cp_path", type=str, default='./results/check_points', help="Check point model path")
+    parser.add_argument("--cp_path1", type=str, default='./results/check_points1', help="Check point first model path")
+    parser.add_argument("--cp_path2", type=str, default='./results/check_points2', help="Check point second model path")
 
 
 

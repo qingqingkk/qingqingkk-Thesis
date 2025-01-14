@@ -50,175 +50,93 @@ def trainer(args, train_dataset,valid_dataset, test_dataset):
     return test_results
 
 
-def train_and_evaluate(dataloader, model, start_time, args):
+def train_fusion_model(train_loader, valid_loader, test_loader, fusion_model, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    ## Optimizer, Loss Function, and Scheduler lr=1e-5 Concatenate, lr=6e-6 attention 
-    optimizer = optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=0.01)
 
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
+    fusion_model.to(device)
+
+    # Optimizer, scheduler, and loss function
+    optimizer = torch.optim.AdamW(fusion_model.parameters(), lr=args.learning_rate, weight_decay=0.01)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.9)
     criterion = torch.nn.CrossEntropyLoss()
-    model = model.to(device)
-    train_loader = dataloader[0]
-    valid_loader = dataloader[1]
-    test_loader = dataloader[2]
 
-    ## Training settings
-    num_epochs = args.num_train_epochs
-    early_stopping_patience = args.early_stopping_patience
-    best_valid_accuracy = 0 
-    patience_counter = 0
-    accumulation_steps =  2
-    result = {}
-    result['best_val_acc'] = best_valid_accuracy
-    result['seed'] = args.seed
-    save_path = os.path.join(args.cp_path, f'{start_time}_{args.modality}_{args.strategy}_{args.da}')
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
-    model_path = os.path.join(save_path, args.cp_name)
+    def process_batch(data, labels):
+        inputs1 = data[0]['input_values'].to(device)
+        inputs2 = data[1]['input_values'].to(device)
+        labels = labels.to(device)
+        return inputs1, inputs2, labels
 
-    ### Training and evaluation loop
-    ### Training and evaluation loop
-    for epoch in range(num_epochs):
-        print(f"\nEpoch {epoch+1}/{num_epochs}")
+    def run_epoch(loader, is_train):
+        mode = "Training" if is_train else "Validation"
+        fusion_model.train() if is_train else fusion_model.eval()
+        total_loss, correct, total = 0, 0, 0
+        preds, labels_list = [], []
 
-        # ========================= Training Loop ==========================
-        model.train()
-        train_loss, train_correct, train_total = 0, 0, 0
-        all_preds, all_labels = [], []
+        for step, (data, labels) in enumerate(tqdm(loader, desc=mode)):
+            if is_train:
+                optimizer.zero_grad()
 
-        for step, (data, labels) in enumerate(tqdm(train_loader, desc="Training")):
-            optimizer.zero_grad() 
-            labels = labels.to(device)
-            if args.strategy == 'mid':
-                inputs1 = data[0]['input_values'].to(device)
-                inputs2 = data[1]['input_values'].to(device)
-                outputs = model(inputs1, inputs2)
-            else:
-                inputs =  data['input_values'].to(device)
-                outputs = model(inputs)
+            inputs1, inputs2, labels = process_batch(data, labels)
+            outputs = fusion_model(inputs1, inputs2)
+            loss = criterion(outputs, labels) / (args.accumulation_steps if is_train else 1)
 
-            loss = criterion(outputs, labels) / accumulation_steps  # Scale loss for accumulation
-            
-            # Backward pass
-            loss.backward()
-            train_loss += loss.item() 
+            if is_train:
+                loss.backward()
+                if (step + 1) % args.accumulation_steps == 0 or (step == len(loader) - 1):
+                    optimizer.step()
 
-            # Predictions (No Grad)
+            total_loss += loss.item()
             with torch.no_grad():
-                outputs_prob = torch.softmax(outputs, dim=1)  # probability distribution
-                predicted = torch.argmax(outputs_prob, dim=1)  # max probability as predict
-                train_correct += predicted.eq(labels).sum().item()
-                train_total += labels.size(0)
-                all_preds.extend(predicted.cpu().numpy())
-                all_labels.extend(labels.cpu().numpy())
-            
-            # Perform optimizer step when accumulation is complete
-            if (step + 1) % accumulation_steps == 0 or (step == len(train_loader) - 1):
-                optimizer.step()
+                outputs_prob = torch.softmax(outputs, dim=1)
+                predicted = torch.argmax(outputs_prob, dim=1)
+                correct += predicted.eq(labels).sum().item()
+                total += labels.size(0)
+                preds.extend(predicted.cpu().numpy())
+                labels_list.extend(labels.cpu().numpy())
 
-        # Compute average loss, accuracy, and F1
-        avg_train_loss = train_loss / len(train_loader)
-        train_accuracy = train_correct / train_total
-        train_f1 = f1_score(all_labels, all_preds, average='macro')
-        print(f"Train Loss: {avg_train_loss:.4f}, Train Accuracy: {train_accuracy:.4f}, Train F1: {train_f1:.4f}")
+        avg_loss = total_loss / len(loader)
+        accuracy = correct / total
+        f1 = f1_score(labels_list, preds, average='macro')
+        return avg_loss, accuracy, f1
 
-        # ========================= Validation Loop ==========================
-        model.eval()
-        valid_loss, valid_correct, valid_total = 0, 0, 0
-        valid_preds, valid_labels = [], []
+    best_valid_accuracy = 0
+    patience_counter = 0
 
-        with torch.no_grad():
-            for data, labels in tqdm(valid_loader, desc="Validation"):
-                labels = labels.to(device)
-                if args.strategy == 'mid':
-                    inputs1 = data[0]['input_values'].to(device)
-                    inputs2 = data[1]['input_values'].to(device)
-                    outputs = model(inputs1, inputs2)
-                else:
-                    inputs =  data['input_values'].to(device)
-                    outputs = model(inputs)
+    for epoch in range(args.num_train_epochs):
+        print(f"\nEpoch {epoch + 1}/{args.num_train_epochs}")
 
-                # outputs = classfier(outputs)
-                outputs_prob = torch.softmax(outputs, dim=1)  # probability distribution
-                predicted = torch.argmax(outputs_prob, dim=1)  # max probability as predict
-                
-                loss = criterion(outputs, labels)
-                valid_loss += loss.item()
+        # Training and validation
+        train_loss, train_accuracy, train_f1 = run_epoch(train_loader, is_train=True)
+        print(f"Train Loss: {train_loss:.4f}, Accuracy: {train_accuracy:.4f}, F1: {train_f1:.4f}")
 
-                valid_correct += predicted.eq(labels).sum().item()
-                valid_total += labels.size(0)
-                
-                valid_preds.extend(predicted.cpu().numpy())
-                valid_labels.extend(labels.cpu().numpy())
+        valid_loss, valid_accuracy, valid_f1 = run_epoch(valid_loader, is_train=False)
+        print(f"Validation Loss: {valid_loss:.4f}, Accuracy: {valid_accuracy:.4f}, F1: {valid_f1:.4f}")
 
-        # Compute average loss、accuracy and F1
-        avg_valid_loss = valid_loss / len(valid_loader)
-        valid_accuracy = valid_correct / valid_total
-        valid_f1 = f1_score(valid_labels, valid_preds, average='macro')
-        print(f"Validation Loss: {avg_valid_loss:.4f}, Validation Accuracy: {valid_accuracy:.4f}, Validation F1: {valid_f1:.4f}")
-
-        # Save best model
-        if valid_accuracy >= best_valid_accuracy:
+        if valid_accuracy > best_valid_accuracy:
             best_valid_accuracy = valid_accuracy
-            result['best_val_acc'] = best_valid_accuracy
-            result['best_val_loss'] = avg_valid_loss
-            result['best_epoch'] = epoch
-            torch.save(model.state_dict(), model_path)
-            result['cp_name'] = model_path
-            print("Model saved with improved.")
-            patience_counter = 0 
+            save_path = os.path.join(args.cp_path, f"epoch_{epoch + 1}.pth")
+            torch.save(fusion_model.state_dict(), save_path)
+            print(f"Model saved at {save_path} with improved accuracy.")
+            patience_counter = 0
         else:
-            patience_counter += 1  
+            patience_counter += 1
 
-
-        if patience_counter >= early_stopping_patience:
-            print(f"Early stopping triggered at epoch {epoch+1}. No improvement in validation accuracy for {early_stopping_patience} epochs.")
+        if patience_counter >= args.early_stopping_patience:
+            print(f"Early stopping triggered at epoch {epoch + 1}.")
             break
-            
-        # Update lr
-        scheduler.step(best_valid_accuracy)
 
+        scheduler.step()
 
-        # ========================= Test Loop ==========================
-        model.eval()
-        test_loss, test_correct, test_total = 0, 0, 0
-        test_preds, test_labels = [], []
+    # Testing
+    test_loss, test_accuracy, test_f1 = run_epoch(test_loader, is_train=False)
+    print(f"Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}, Test F1: {test_f1:.4f}")
 
-        with torch.no_grad():
-            for data, labels in tqdm(test_loader, desc="Testing"):
-                labels = labels.to(device)
-
-                if args.strategy == 'mid':
-                    inputs1 = data[0]['input_values'].to(device)
-                    inputs2 = data[1]['input_values'].to(device)
-                    outputs = model(inputs1, inputs2)
-                else:
-                    inputs =  data['input_values'].to(device)
-                    outputs = model(inputs)
-                    
-                outputs_prob = torch.softmax(outputs, dim=1)  # probability distribution
-                predicted = torch.argmax(outputs_prob, dim=1)  # max probability as predict
-                
-                loss = criterion(outputs, labels)
-                test_loss += loss.item()
-
-                test_correct += predicted.eq(labels).sum().item()
-                test_total += labels.size(0)
-                
-                test_preds.extend(predicted.cpu().numpy())
-                test_labels.extend(labels.cpu().numpy())
-
-        # Compute average loss、accuracy and F1
-        avg_test_loss = test_loss / len(test_loader)
-        test_accuracy = test_correct / test_total
-        test_f1 = f1_score(test_labels, test_preds, average='macro')
-        if patience_counter == 0:
-            result['best_test_acc'] = test_accuracy
-            result['best_test_f1'] = test_f1
-            result['test_loss'] = avg_test_loss
-        print(f"Test Loss: {avg_test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}, Test F1: {test_f1:.4f}")
-
-    return result
+    return {
+        'best_valid_accuracy': best_valid_accuracy,
+        'test_loss': test_loss,
+        'test_accuracy': test_accuracy,
+        'test_f1': test_f1
+    }
 
 
 
@@ -226,8 +144,8 @@ def late_fusion_val_test(args, models, cs, sv):
     cs_model = models[0]
     sv_model = models[1]
     # get prob
-    cs_val_p, cs_test_p = get_probabilities_with_prefix(cs_model, cs[0], cs[1])
-    sv_val_p, sv_test_p = get_probabilities_with_prefix(sv_model, sv[0], sv[1])
+    cs_val_p, cs_test_p = get_probabilities_with_prefix(cs_model, cs[1], cs[2])
+    sv_val_p, sv_test_p = get_probabilities_with_prefix(sv_model, sv[1], sv[2])
 
     true_labels = []
     fused_probs = []

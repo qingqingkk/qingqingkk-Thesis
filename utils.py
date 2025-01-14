@@ -101,4 +101,5 @@ def get_probabilities_with_prefix(model, valid_loader, test_loader):
             for prefix, label, prob in zip(prefixes, labels, probs):
                 key = (prefix, label.item())  # key = (prefix, label)
                 probabilities_test[key] = prob  # save probability
+                
     return probabilities_val, probabilities_test

@@ -43,8 +43,8 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
         input_values_sv = input_values_sv.squeeze(1)
         
         # Freeze feature_encoder parameters
-        # self.model_cs.freeze_feature_encoder()
-        # self.model_sv.freeze_feature_encoder()
+        self.model_cs.freeze_feature_encoder()
+        self.model_sv.freeze_feature_encoder()
         
         # Extract features
         features_cs = self.model_cs.feature_extractor(input_values_cs)
@@ -98,17 +98,17 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
         
         return logits
 
+
 def load_model(args):
     if args.strategy == 'late':
-        if args.cp_path == None:
-            raise ValueError('To apply late fusion, you must prepare two fine-tuned check point cs and sv')
-        cs_cp = torch.load(os.path.join(args.cp_path, 'cs_model.pth'))
-        sv_cp = torch.load(os.path.join(args.cp_path, 'sv_model.pth'))
-        return [cs_cp, sv_cp]
+        model1 = AutoModelForAudioClassification.from_pretrained(args.cp_path1, num_labels=args.num_classes)
+        model2 = AutoModelForAudioClassification.from_pretrained(args.cp_path2, num_labels=args.num_classes)
+        
+        return [model1, model2]
         
     elif args.strategy == 'mid':
-        model1 = AutoModelForAudioClassification.from_pretrained(args.model_name, num_labels=args.num_classes)
-        model2 = AutoModelForAudioClassification.from_pretrained(args.model_name, num_labels=args.num_classes)
+        model1 = AutoModelForAudioClassification.from_pretrained(args.cp_path1, num_labels=args.num_classes)
+        model2 = AutoModelForAudioClassification.from_pretrained(args.cp_path2, num_labels=args.num_classes)
         model = Wav2Vec2SharedTransformerModel(model1, model2)
     else:
         model = AutoModelForAudioClassification.from_pretrained(args.model_name, num_labels=args.num_classes)

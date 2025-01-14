@@ -7,7 +7,7 @@ import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Dataset
 from transformers import Wav2Vec2Processor
-from datasets import Dataset as HFDataset  # 使用别名 HFDataset
+from datasets import Dataset as HFDataset  
 
 
 """
@@ -166,7 +166,7 @@ def load_csv(args):
     sv_train_valid, sv_test = train_test_split(sv_df, test_size=0.1, stratify=sv_df['label'], random_state=20)
     sv_train, sv_valid = train_test_split(sv_train_valid, test_size=0.1111, stratify=sv_train_valid['label'], random_state=SEED)
 
-    return (cs_train, cs_valid, cs_test), (sv_train, sv_valid, sv_test)
+    return [cs_train, cs_valid, cs_test], [sv_train, sv_valid, sv_test]
 
 
 # Load the separated df and use the predefined Processor for processing and feature extraction
@@ -192,7 +192,7 @@ def load_data(args):
         )
     
     elif args.strategy == 'late':
-        (cs_train, cs_valid, cs_test), (sv_train, sv_valid, sv_test) = load_csv(args)
+        [cs_train, cs_valid, cs_test], [sv_train, sv_valid, sv_test] = load_csv(args)
 
         cs_train = HFDataset.from_pandas(cs_train)
         cs_valid = HFDataset.from_pandas(cs_valid)

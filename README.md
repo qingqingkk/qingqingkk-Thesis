@@ -32,7 +32,7 @@ separated Dataset
 
 # (Early Fusion) get concatenated audio from raw dataset
 Run:
-$python combined_cs_sv.py  --data_path='CONTROLLI.csv' --audio_folder='ipv-controlli' --output_dir='./results'
+$python combined_cs_sv.py  --data_path='./raw Dataset folder' --output_dir='./results'
 ```
 Concatenated dataset
 ├── healthy1_combined.wav
@@ -40,24 +40,18 @@ Concatenated dataset
 └── concatenate.csv
 ```
 
-##### Run the code
+##### Run the code -- Single modality cs,sv or concatenated datasets (early strategies)
 ```
-$python main.py --data_path=./datasets --output_dir=./results --modality=cs 
+$python main.py --data_path=./dataset_cs.csv --cp_pat=./results/cs_single --strategy=single
 ```
 
-## Data augment cs or sv
-### How to activate it
-```
-$python main.py --data_path=./datasets --output_dir=./results --modality=cs --da
-```
-#### Augument methods
-todo
 
 ## Benchmark
 Continuously evaluate MLP(Multilayer Perceptron), 2D-CNN fine-tuning classification head, and 2D-CNN fine-tuning all layers. No separate evaluation of any of the models is set
+
 #### Running example of cs mode
 ```
-$python3 main.py --data_path=./datasets_cs.csv --output_dir=./results --strategy=benchmark --modality=cs --max_duration=19 --seed=12 --num_classes=2 --batch_size=16 --learning_rate=0.01 --num_train_epochs=50
+$python3 main.py --data_path=./datasets_cs.csv --output_dir=./results --strategy=benchmark
 ```
 
 ## Fusion model
