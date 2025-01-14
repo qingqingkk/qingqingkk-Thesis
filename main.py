@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 from dataset_loader import load_data
-from train import train_and_evaluate, late_fusion_val_test, trainer
+from train import train_Midfusion_model, late_fusion_val_test, trainer
 from model import load_model
 from benchmark import benchmark_train_test
 
@@ -30,7 +30,7 @@ def main(args):
     elif args.strategy == 'benchmark':
         result = benchmark_train_test(args, train_loader, valid_loader,test_loader)
     elif args.strategy == 'mid':
-        result = train_and_evaluate([train_loader, valid_loader, test_loader], models, start_time, args)
+        result = train_Midfusion_model([train_loader, valid_loader, test_loader], models, start_time, args)
     else:
         result = trainer(args, train_loader, valid_loader, test_loader)
     
