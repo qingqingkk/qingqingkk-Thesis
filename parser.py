@@ -29,6 +29,7 @@ def parse_arguments():
     parser.add_argument("--accumulation_steps", type=int, default=1, help="accumulation step used")
     parser.add_argument("--seed", type=int, default=12, help="Random seed")
     parser.add_argument("--cp_name", type=str, default='best_model.pth', help="Check point model name")
+    parser.add_argument("--cp_path", type=str, default='./results', help="Store ckp path")
     parser.add_argument("--cp_path1", type=str, default='./results/check_points1', help="Check point first model path")
     parser.add_argument("--cp_path2", type=str, default='./results/check_points2', help="Check point second model path")
 
