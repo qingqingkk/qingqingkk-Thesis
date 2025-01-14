@@ -8,7 +8,7 @@ from tqdm import tqdm
 import random
 from sklearn.neural_network import MLPClassifier
 import numpy as np
-from utils import compute_metrics, training_args, create_weighted_trainer, get_probabilities
+from utils import compute_metrics, training_args, create_weighted_trainer, get_probabilities_with_prefix
 from transformers import AutoModelForAudioClassification, EarlyStoppingCallback, Trainer
 
 def trainer(args, train_dataset,valid_dataset, test_dataset):
@@ -144,8 +144,8 @@ def late_fusion_val_test(args, models, cs, sv):
     cs_model = models[0]
     sv_model = models[1]
     # get prob
-    cs_val_p, cs_test_p = get_probabilities(cs_model, cs[0], cs[1])
-    sv_val_p, sv_test_p = get_probabilities(sv_model, sv[0], sv[1])
+    cs_val_p, cs_test_p = get_probabilities_with_prefix(cs_model, cs[0], cs[1])
+    sv_val_p, sv_test_p = get_probabilities_with_prefix(sv_model, sv[0], sv[1])
 
     result = {}
 
@@ -167,7 +167,7 @@ def late_fusion_val_test(args, models, cs, sv):
 
         # Compute metrics
         accuracy = accuracy_score(true_labels, predicted_labels)
-        f1 = f1_score(true_labels, predicted_labels, average='macro')
+        f1 = f1_score(true_labels, predicted_labels, average='weighted')
 
         print(f"Accuracy: {accuracy:.4f}, F1 Score: {f1:.4f}")
         return accuracy, f1
@@ -176,19 +176,21 @@ def late_fusion_val_test(args, models, cs, sv):
         # Validation loop
         true_labels = []
         fused_probs = []
-        for cs_label, cs_probs in cs_val_p.items():
-            if cs_label in sv_val_p:
-                sv_probs = sv_val_p[cs_label]
+        prefixes = []
+        for (prefix, cs_label), cs_probs in cs_val_p.items():
+            if (prefix, cs_label) in sv_val_p:
+                sv_probs = sv_val_p[(prefix, cs_label)]
 
                 # Compute the average of probabilities
                 fused_prob = (cs_probs + sv_probs) / 2.0
                 fused_probs.append(fused_prob)
 
                 # Add the true labels
-                true_labels.append(cs_label[1])
+                true_labels.append(cs_label)
+                prefixes.append(prefix)
 
         # Debugging: print shapes and content
-        print(f"Validation - True Labels Count: {len(true_labels)}, Fused Probs Count: {len(fused_probs)}")
+        print(f"Validation - True Labels Count: {len(true_labels)}, Fused Probs Count: {len(fused_probs)}, Prefixes Count: {len(prefixes)}")
 
         # Ensure correct shapes
         true_labels = np.array(true_labels)
@@ -196,23 +198,26 @@ def late_fusion_val_test(args, models, cs, sv):
         val_accuracy, val_f1 = evaluate_classification(true_labels, fused_probs)
         result['val_acc'] = val_accuracy
         result['val_f1'] = val_f1
+        result['val_prefixes'] = prefixes
 
         # Test loop
         true_labels = []
         fused_probs = []
-        for cs_label, cs_probs in cs_test_p.items():
-            if cs_label in sv_test_p:
-                sv_probs = sv_test_p[cs_label]
+        prefixes = []
+        for (prefix, cs_label), cs_probs in cs_test_p.items():
+            if (prefix, cs_label) in sv_test_p:
+                sv_probs = sv_test_p[(prefix, cs_label)]
 
                 # Compute the average of probabilities
                 fused_prob = (cs_probs + sv_probs) / 2.0
                 fused_probs.append(fused_prob)
 
                 # Add the true labels
-                true_labels.append(cs_label[1])
+                true_labels.append(cs_label)
+                prefixes.append(prefix)
 
         # Debugging: print shapes and content
-        print(f"Test - True Labels Count: {len(true_labels)}, Fused Probs Count: {len(fused_probs)}")
+        print(f"Test - True Labels Count: {len(true_labels)}, Fused Probs Count: {len(fused_probs)}, Prefixes Count: {len(prefixes)}")
 
         # Ensure correct shapes
         true_labels = np.array(true_labels)
@@ -220,21 +225,24 @@ def late_fusion_val_test(args, models, cs, sv):
         test_accuracy, test_f1 = evaluate_classification(true_labels, fused_probs)
         result['test_acc'] = test_accuracy
         result['test_f1'] = test_f1
+        result['test_prefixes'] = prefixes
 
     elif args.late_type == 'moe':
         X_train = []
         y_train = []
+        prefixes = []
 
         # Construct validation set features and labels
-        for label, cs_prob in cs_val_p.items():
-            sv_prob = sv_val_p.get(label, None)
+        for (prefix, label), cs_prob in cs_val_p.items():
+            sv_prob = sv_val_p.get((prefix, label), None)
 
             if sv_prob is not None:
                 # Concatenate the probabilities of the two models as features
                 combined_prob = np.concatenate((cs_prob, sv_prob))
 
                 X_train.append(combined_prob)
-                y_train.append(label[1])
+                y_train.append(label)
+                prefixes.append(prefix)
 
         # Convert to NumPy
         X_train = np.array(X_train)
@@ -251,9 +259,10 @@ def late_fusion_val_test(args, models, cs, sv):
         def _evaluate_fusion(cs_prob_dict, sv_prob_dict, gating_network):
             X_fused = []
             y_fused = []
+            prefixes = []
 
-            for label, cs_prob in cs_prob_dict.items():
-                sv_prob = sv_prob_dict.get(label, None)
+            for (prefix, label), cs_prob in cs_prob_dict.items():
+                sv_prob = sv_prob_dict.get((prefix, label), None)
 
                 if sv_prob is not None:
                     # Concatenate the probabilities of the two models as features
@@ -275,22 +284,25 @@ def late_fusion_val_test(args, models, cs, sv):
                     final_prob = cs_weight * cs_prob + sv_weight * sv_prob
 
                     X_fused.append(final_prob)
-                    y_fused.append(label[1])
+                    y_fused.append(label)
+                    prefixes.append(prefix)
 
             X_fused = np.array(X_fused)
             y_fused = np.array(y_fused)
 
             # Evaluate classification
-            return evaluate_classification(y_fused, X_fused)
+            return evaluate_classification(y_fused, X_fused), prefixes
 
         # Evaluate the validation set ensemble
-        valid_accuracy, valid_f1 = _evaluate_fusion(cs_val_p, sv_val_p, gating_network)
+        (valid_accuracy, valid_f1), val_prefixes = _evaluate_fusion(cs_val_p, sv_val_p, gating_network)
         result['val_acc'] = valid_accuracy
         result['val_f1'] = valid_f1
+        result['val_prefixes'] = val_prefixes
 
         # Evaluate the Test set ensemble
-        test_accuracy, test_f1 = _evaluate_fusion(cs_test_p, sv_test_p, gating_network)
+        (test_accuracy, test_f1), test_prefixes = _evaluate_fusion(cs_test_p, sv_test_p, gating_network)
         result['test_acc'] = test_accuracy
         result['test_f1'] = test_f1
+        result['test_prefixes'] = test_prefixes
 
     return result
