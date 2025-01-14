@@ -109,8 +109,10 @@ def load_model(args):
     elif args.strategy == 'mid':
         model1 = AutoModelForAudioClassification.from_pretrained(args.cp_path1, num_labels=args.num_classes)
         model2 = AutoModelForAudioClassification.from_pretrained(args.cp_path2, num_labels=args.num_classes)
-        model = Wav2Vec2SharedTransformerModel(model1, model2)
+        
+        model = Wav2Vec2SharedTransformerModel(model1, model2, fusion_method=args.mid_type, num_classes=args.num_classes)
     else:
+       
         model = AutoModelForAudioClassification.from_pretrained(args.model_name, num_labels=args.num_classes)
     
     return model
