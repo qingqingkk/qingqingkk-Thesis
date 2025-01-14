@@ -155,14 +155,15 @@ def late_fusion_val_test(args, models, cs, sv):
         if args.num_classes > 2:
             predicted_labels = np.argmax(predicted_probs, axis=-1)
         else:
-            predicted_labels = (predicted_probs > 0.5).astype(int)
+            predicted_labels = (predicted_probs[:, 1] > 0.5).astype(int)  # Use the second column for binary classification
 
-        # Ensure true_labels is consistent
-        if args.num_classes > 2:
-            true_labels = np.array(true_labels)
+        # Ensure true_labels is a numpy array
+        true_labels = np.array(true_labels)
 
         # Verify matching shapes
-        assert len(true_labels) == len(predicted_labels) ,"Shapes do not match!"
+        assert true_labels.shape[0] == predicted_labels.shape[0], (
+            f"Shapes do not match! true_labels shape: {true_labels.shape}, predicted_probs shape: {predicted_probs.shape}"
+        )
 
         # Compute metrics
         accuracy = accuracy_score(true_labels, predicted_labels)
@@ -170,7 +171,6 @@ def late_fusion_val_test(args, models, cs, sv):
 
         print(f"Accuracy: {accuracy:.4f}, F1 Score: {f1:.4f}")
         return accuracy, f1
-
 
     if args.late_type == 'average':
         # Validation loop
@@ -187,8 +187,8 @@ def late_fusion_val_test(args, models, cs, sv):
                 # Add the true labels
                 true_labels.append(cs_label[1])
 
-        # Debugging: print shapes
-        print(f"Validation - True Labels: {len(true_labels)}, Fused Probs: {len(fused_probs)}")
+        # Debugging: print shapes and content
+        print(f"Validation - True Labels Count: {len(true_labels)}, Fused Probs Count: {len(fused_probs)}")
 
         # Ensure correct shapes
         true_labels = np.array(true_labels)
@@ -211,8 +211,8 @@ def late_fusion_val_test(args, models, cs, sv):
                 # Add the true labels
                 true_labels.append(cs_label[1])
 
-        # Debugging: print shapes
-        print(f"Test - True Labels: {len(true_labels)}, Fused Probs: {len(fused_probs)}")
+        # Debugging: print shapes and content
+        print(f"Test - True Labels Count: {len(true_labels)}, Fused Probs Count: {len(fused_probs)}")
 
         # Ensure correct shapes
         true_labels = np.array(true_labels)
