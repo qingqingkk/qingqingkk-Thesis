@@ -100,7 +100,7 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
 
 
 def load_model(args):
-    
+
     if args.strategy == 'late':
         model1 = AutoModelForAudioClassification.from_pretrained(args.cp_path1, num_labels=args.num_classes)
         model2 = AutoModelForAudioClassification.from_pretrained(args.cp_path2, num_labels=args.num_classes)
@@ -108,8 +108,8 @@ def load_model(args):
         return [model1, model2]
         
     elif args.strategy == 'mid':
-        model1 = AutoModelForAudioClassification.from_pretrained(args.cp_path1, num_labels=args.num_classes)
-        model2 = AutoModelForAudioClassification.from_pretrained(args.cp_path2, num_labels=args.num_classes)
+        model1 = Wav2Vec2Model.from_pretrained(args.cp_path1, num_labels=args.num_classes)
+        model2 = Wav2Vec2Model.from_pretrained(args.cp_path2, num_labels=args.num_classes)
         
         model = Wav2Vec2SharedTransformerModel(model1, model2, fusion_method=args.mid_type, num_classes=args.num_classes)
     else:
