@@ -13,7 +13,7 @@ This script processes the raw dataset by:
 
 """
 
-def preprocess_data(data_path, output_dir, label_column):
+def process_data(data_path, output_dir, label_column):
     # Read CSV file
     casi_df = pd.read_csv(os.path.join(data_path, 'CASI.csv'))
     contro_df = pd.read_csv(os.path.join(data_path, 'CONTROLLI.csv'))
@@ -74,5 +74,5 @@ if __name__ == "__main__":
     args = parse_arguments()
     data_path = args.data_path
     output_dir = args.output_dir
-    preprocess_data(data_path, output_dir)
+    process_data(data_path, output_dir,args.label_column)
 
