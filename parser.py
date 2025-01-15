@@ -14,7 +14,7 @@ def parse_arguments():
 
     # Model parameters
     parser.add_argument("--model_name", type=str, default="facebook/wav2vec2-base-960h", help="Pre-trained model name")
-    parser.add_argument("--strategy", type=str, choices=['early', 'mid', 'late', 'benchmark','single'], default=None, help="Choose the strategies")
+    parser.add_argument("--strategy", type=str, choices=['mid', 'late', 'benchmark','single'], default=None, help="Choose the strategies")
     parser.add_argument("--mid_type", type=str, choices=['concate', 'attention'], default=None, help="Choose the mid-fusion type")
     parser.add_argument("--late_type", type=str, choices=['average', 'moe'], default=None, help="Choose the mid-fusion type")
 

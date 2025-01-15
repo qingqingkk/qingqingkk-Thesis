@@ -29,7 +29,7 @@ def main(args):
         result = train_Midfusion_model(train_loader, valid_loader, test_loader, models, args)
     else:
         result = trainer(args, train_loader, valid_loader, test_loader)
-
+    print(result)
     # output_path = os.path.join(args.output_dir, 'results.json')
     # with open(output_path, 'w', encoding='utf-8') as f:
     #     json.dump(result, f, ensure_ascii=False, indent=4)

@@ -1,64 +1,81 @@
 # Voice Disorder Diagnoses
 
-##### Dataset
+### Dataset Structure
+```
 raw Dataset
 ├── Controlli
-│    ├──healthy1_cs.wav
-│    ├──healthy1_sv.wav
+│    ├── healthy1_cs.wav
+│    ├── healthy1_sv.wav
 │    └──...
 ├── CASI
-│    ├──patient1_cs.wav
-│    ├──patient1_sv.wav
+│    ├── patient1_cs.wav
+│    ├── patient1_sv.wav
 │    └──...
 ├── Controlli.csv
 ├── CASI.csv
+```
 
-
-<!-- - Separate the data of the two modalities (For unimodal models)
-
+### Separate CS and SV Datasets
+To separate the data into two modalities (CS and SV):
+```bash
+python process_raw_data.py --data_path='./raw Dataset' --output_dir='./separated Dataset' --label_column='s/p'
+```
+Resulting structure:
 ```
 separated Dataset
-├── cs
-│    ├──healthy1_cs.wav
-│    ├──patient1_cs.wav
-│    └──...
-├── sv
-│    ├──healthy1_sv.wav
-│    ├──patient1_sv.wav
-│    └──...
 ├── cs_dataset.csv
 ├── sv_dataset.csv
-``` -->
-
-# (Early Fusion) get concatenated audio from raw dataset
-Run:
-$python combined_cs_sv.py  --data_path='./raw Dataset folder' --output_dir='./results'
-```
-Concatenated dataset
-├── healthy1_combined.wav
-├── patient1_combined.wav
-└── concatenate.csv
 ```
 
-##### Run the code -- Single modality cs,sv or concatenated datasets (early strategies)
+### Concatenate CS and SV Data
+To concatenate audio files for early fusion:
+```bash
+python concatenated_cs_sv --data_path='./raw Dataset' --output_dir='./results'
 ```
-$python main.py --data_path=./dataset_cs.csv --cp_pat=./results/cs_single --strategy=single
+Resulting structure:
+```
+results
+├── concatenated
+│    ├── healthy1_combined.wav
+│    ├── patient1_combined.wav
+│    └──...
+├── concat_dataset.csv
 ```
 
-
-## Benchmark
-Continuously evaluate MLP(Multilayer Perceptron), 2D-CNN fine-tuning classification head, and 2D-CNN fine-tuning all layers. No separate evaluation of any of the models is set
-
-#### Running example of cs mode
-```
-$python3 main.py --data_path=./datasets_cs.csv --output_dir=./results --strategy=benchmark
+### Single Training (CS/SV or Concatenated Dataset)
+Run the training script on a single modality or concatenated dataset:
+```bash
+python main.py --data_path=./dataset.csv --cp_path=./results --strategy=single
 ```
 
-## Fusion model
+### Benchmark
+Evaluate multiple models (MLP, 2D-CNN) in sequence. No separate evaluation for individual models.
+```bash
+python main.py --data_path=./dataset.csv --output_dir=./results --strategy=benchmark
+```
 
-### Fusion model details
-- **Early fusion**: Concatenate two modality data
-- **Mid fusion**: Combine embedding features, we have two methods, concatenate and cross-attention
-- **Late fusion**: Combine output probabilities, we have two methods, simple average, and MoE method. Before you use it, make sure you've finished the fine-tuning of two independent models.
+#### Mid Fusion
+Combine embeddings during training using concatenation or cross-attention:
+```bash
+python main.py \
+  --data_path=./separated Dataset \
+  --cp_path=./mid_results
+  --cp_path1=./results/check_points1 \
+  --cp_path2=./results/check_points2 \
+  --strategy=mid \
+  --mid_type=concate 
+```
 
+#### Late Fusion
+Combine model outputs using averaging or Mixture of Experts (MoE):
+```bash
+python main.py \
+  --data_path=./separated Dataset \
+  --cp_path=./late_results
+  --cp_path1=./results/check_points1 \
+  --cp_path2=./results/check_points2 \
+  --strategy=late \
+  --late_type=average \
+```
 
+Ensure that the individual models (`cp_path1` and `cp_path2`) are fine-tuned before running late fusion.
