@@ -5,17 +5,15 @@ from sklearn.preprocessing import LabelEncoder
 import argparse
 
 """
-Preprocess raw data for CS and SV datasets.
+Separate raw data into CS and SV datasets.
 
-This script processes the Raw Dataset by:
-1. Separating `cs` and `sv` voice recordings into two datasets.
-2. Removing special symbols from paths.
-3. Encoding labels.
-4. Saving the processed data into two separate CSV files.
+This script processes the raw dataset by:
+1. Separating `cs` (connected sentence) and `sv` (sustained vowel) voice recordings into two datasets.
+2. Saving the separated data into two CSV files for further processing or analysis.
 
 """
 
-def preprocess_data(data_path, output_dir):
+def preprocess_data(data_path, output_dir, label_column):
     # Read CSV file
     casi_df = pd.read_csv(os.path.join(data_path, 'CASI.csv'))
     contro_df = pd.read_csv(os.path.join(data_path, 'CONTROLLI.csv'))
@@ -38,10 +36,14 @@ def preprocess_data(data_path, output_dir):
     cs_df = pd.concat([contro_cs, casi_cs], ignore_index=True)
     sv_df = pd.concat([contro_sv, casi_sv], ignore_index=True)
 
-    # encode labels
+    # Check if the label column exists
+    if label_column not in cs_df.columns or label_column not in sv_df.columns:
+        raise ValueError(f"The specified label column '{label_column}' does not exist in the dataset.")
+
+    # Encode labels
     label_encoder = LabelEncoder()
-    cs_df['label'] = label_encoder.fit_transform(cs_df['s/p'])
-    sv_df['label'] = label_encoder.fit_transform(sv_df['s/p'])
+    cs_df['label'] = label_encoder.fit_transform(cs_df[label_column])
+    sv_df['label'] = label_encoder.fit_transform(sv_df[label_column])
 
     # save into the CSV files
     cs_df.to_csv(os.path.join(output_dir, 'cs_dataset.csv'), index=False)
@@ -58,7 +60,8 @@ def parse_arguments():
     # dataset parameters
     parser.add_argument("--data_path", type=str, required=True, default="./datasets", help="Path of dataset csv")
     parser.add_argument("--output_dir", type=str, default="./results", help="Output directory for model and results")
-    
+    parser.add_argument("--label_column", type=str, required=True, help="The column name to be used as labels (e.g., 's/p')")
+
     args = parser.parse_args()
     if not os.path.exists(args.data_path):
         raise FileNotFoundError(f'Path: {args.data_path} does not exists')

@@ -15,7 +15,7 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
         # load pretrained, only Transformer encoder
         self.shared_transformer = Wav2Vec2Model.from_pretrained(shared_transformer_model).encoder
         
-        # Shared proj layer : map both modalities to the same vector space
+        # map 2 modalities to the same vector space
         self.shared_projection = nn.Linear(hidden_size, hidden_size)
         self.layer_norm = nn.LayerNorm(hidden_size)
         self.fusion_method = fusion_method
@@ -60,16 +60,13 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
         projected_hidden_states_sv = self.layer_norm(self.shared_projection(hidden_states_sv))  # [batch_size, seq_len, hidden_size]
       
         # Fuse features
-
         if self.fusion_method == 'attention':
-            # Transpose to adapt to the multi-head attention input format
+            # Transpose to adapt to the multi-head
             projected_hidden_states_cs = projected_hidden_states_cs.transpose(0, 1)  # [seq_len, batch_size, hidden_size]
             projected_hidden_states_sv = projected_hidden_states_sv.transpose(0, 1)
             
-            # Cross attention 1：'query', 'key', and 'value'
+            # Cross attention ：'query', 'key', and 'value'
             attn_output1, _ = self.atten_layer(projected_hidden_states_cs, projected_hidden_states_sv, projected_hidden_states_sv)
-
-            # Cross attention 2：'query', 'key', and 'value'
             attn_output2, _ = self.atten_layer(projected_hidden_states_sv, projected_hidden_states_cs, projected_hidden_states_cs)
 
             # Transform back and concatenate
@@ -82,14 +79,12 @@ class Wav2Vec2SharedTransformerModel(nn.Module):
             # Concatenate
             fused_features = torch.cat((projected_hidden_states_cs, projected_hidden_states_sv), dim=-1)
             
-        # Pass through the fusion layer to reduce to hidden_size
+        # fuse & reduce to hidden_size
         fused_features = self.post_norm(fused_features)
         fused_features = self.fusion_layer(fused_features)
         fused_features = self.dropout(fused_features) 
 
-        
-        # fused_features.to(device)
-        # Put into Transformer encoder
+        # Put into encoder
         transformer_outputs = self.shared_transformer(fused_features)
 
         # Average pooling and classify

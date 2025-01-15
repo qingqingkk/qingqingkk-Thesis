@@ -11,6 +11,20 @@ import numpy as np
 from utils import compute_metrics, training_args, create_weighted_trainer, get_probabilities_with_prefix
 from transformers import AutoModelForAudioClassification, EarlyStoppingCallback, Trainer
 
+
+"""
+Audio Classification Training and Evaluation Script
+
+
+Main Functions:
+- `trainer`: Trains and evaluates a model with the `transformers` Trainer API
+    (early, single modes).
+- `train_Midfusion_model`: mid-level fusion for dual input modalities.
+- `late_fusion_val_test`: Combines predictions from multiple models.
+"""
+
+
+
 def trainer(args, train_dataset,valid_dataset, test_dataset):
     seed=args.seed
     random.seed(seed)
@@ -112,7 +126,7 @@ def train_Midfusion_model(train_loader, valid_loader, test_loader, fusion_model,
         valid_loss, valid_accuracy, valid_f1 = run_epoch(valid_loader, is_train=False)
         print(f"Validation Loss: {valid_loss:.4f}, Accuracy: {valid_accuracy:.4f}, F1: {valid_f1:.4f}")
 
-        if valid_accuracy > best_valid_accuracy:
+        if valid_accuracy >= best_valid_accuracy:
             best_valid_accuracy = valid_accuracy
             save_path = os.path.join(args.cp_path, 'best.pth')
             torch.save(fusion_model.state_dict(), save_path)

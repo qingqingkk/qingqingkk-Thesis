@@ -129,6 +129,7 @@ def benchmark_train_test(args, train_dataset, valid_dataset, test_dataset):
     val_metrics, test_metrics = train_and_evaluate_model(cnn_nofreeze_model, x_train, y_train, x_valid, y_valid, x_test, y_test, args, save_path)
     results['cnn_no_freeze'] = {'val': val_metrics, 'test': test_metrics}
     print('Finished!')
+    print(results)
 
     return results
 

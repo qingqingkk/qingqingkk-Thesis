@@ -1,10 +1,7 @@
 import parser
 import random
 import numpy as np
-import os
 import json
-from datetime import datetime
-
 from dataset_loader import load_data
 from train import train_Midfusion_model, late_fusion_val_test, trainer
 from model import load_model
@@ -32,6 +29,9 @@ def main(args):
         result = train_Midfusion_model(train_loader, valid_loader, test_loader, models, args)
     else:
         result = trainer(args, train_loader, valid_loader, test_loader)
+
+    with open('results.json', 'w', encoding='utf-8') as f:
+        json.dump(result, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
     args = parser.parse_arguments()
