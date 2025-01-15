@@ -30,7 +30,8 @@ def main(args):
     else:
         result = trainer(args, train_loader, valid_loader, test_loader)
 
-    with open('results.json', 'w', encoding='utf-8') as f:
+    output_path = os.path.join(args.output_dir, 'results.json')
+    with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(result, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
