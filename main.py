@@ -30,9 +30,9 @@ def main(args):
     else:
         result = trainer(args, train_loader, valid_loader, test_loader)
 
-    output_path = os.path.join(args.output_dir, 'results.json')
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(result, f, ensure_ascii=False, indent=4)
+    # output_path = os.path.join(args.output_dir, 'results.json')
+    # with open(output_path, 'w', encoding='utf-8') as f:
+    #     json.dump(result, f, ensure_ascii=False, indent=4)
 
 if __name__ == "__main__":
     args = parser.parse_arguments()
