@@ -79,3 +79,8 @@ python main.py \
 ```
 
 Ensure that the individual models (`cp_path1` and `cp_path2`) are fine-tuned before running late fusion.
+
+#### Data augmentation
+```bash
+    --da
+```
